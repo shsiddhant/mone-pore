@@ -20,8 +20,16 @@ Early development.
 
 ## Development
 
+### Run application
+
 ```bash
 go run .
+```
+
+### Run tests
+
+```bash
+go test ./...
 ```
 
 ## License
