@@ -2,23 +2,25 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 )
 
 func testDB(t *testing.T) *DB {
 	t.Helper()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	cfg := SQLiteConfig{
+		DBPath:      ":memory:",
+		ForeignKeys: true,
+	}
+
+	database, err := Open(cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Cleanup(func() {
-		db.Close()
+		database.Close()
 	})
-
-	database := &DB{db}
 
 	if err := RunMigrations(database, nil); err != nil {
 		t.Fatal(err)
@@ -44,4 +46,19 @@ func seedJournal(t *testing.T, db *DB) Journal {
 	}
 
 	return journal
+}
+
+func TestForeignKeys(t *testing.T) {
+	database := testDB(t)
+
+	ctx := context.Background()
+
+	var foreignKeys int
+
+	err := database.QueryRowContext(ctx, `PRAGMA foreign_keys`).Scan(&foreignKeys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("foreign_keys = %d", foreignKeys)
 }
