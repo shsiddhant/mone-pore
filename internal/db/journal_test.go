@@ -2,65 +2,9 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 )
-
-func testDB(t *testing.T) *DB {
-	t.Helper()
-
-	db, err := sql.Open("sqlite", ":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Cleanup(func() {
-		db.Close()
-	})
-
-	database := &DB{db}
-
-	if err := RunMigrations(database, nil); err != nil {
-		t.Fatal(err)
-	}
-
-	return database
-}
-
-func testSeededDB(t *testing.T) *DB {
-	t.Helper()
-
-	db, err := sql.Open("sqlite", ":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Cleanup(func() {
-		db.Close()
-	})
-
-	database := &DB{db}
-
-	if err := RunMigrations(database, nil); err != nil {
-		t.Fatal(err)
-	}
-
-	journalName := "Reconstruction"
-	passwordHash := "password-hash"
-
-	_, err = database.CreateJournal(
-		context.Background(),
-		journalName,
-		passwordHash,
-	)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return database
-}
 
 func TestCreateJournal(t *testing.T) {
 	expectedID := int64(1)
@@ -101,9 +45,11 @@ func TestCreateJournal(t *testing.T) {
 }
 
 func TestGetJournalByName(t *testing.T) {
-	journalName := "Reconstruction"
-	passwordHash := "password-hash"
-	database := testSeededDB(t)
+	database := testDB(t)
+
+	journalExpected := seedJournal(t, database)
+	journalName := journalExpected.JournalName
+	passwordHash := journalExpected.Password
 
 	journal, err := database.GetJournalByName(context.Background(), journalName)
 
@@ -123,7 +69,9 @@ func TestGetJournalByName(t *testing.T) {
 func TestUpdateJournalName(t *testing.T) {
 
 	ctx := context.Background()
-	database := testSeededDB(t)
+	database := testDB(t)
+
+	_ = seedJournal(t, database)
 
 	const (
 		journalID int64  = 1
@@ -153,7 +101,9 @@ func TestUpdateJournalName(t *testing.T) {
 func TestUpdateJournalPassword(t *testing.T) {
 
 	ctx := context.Background()
-	database := testSeededDB(t)
+	database := testDB(t)
+
+	_ = seedJournal(t, database)
 
 	const (
 		journalID   int64  = 1
