@@ -435,3 +435,145 @@ func TestCreateMemoryRollback(t *testing.T) {
 		t.Errorf("got %d Go tags, want 0", count)
 	}
 }
+
+func TestGetMemory(t *testing.T) {
+	database := testDB(t)
+	ctx := context.Background()
+
+	journal := seedJournal(t, database)
+
+	expected, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"Test memory",
+		"Test body",
+		[]string{"Go"},
+	)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := database.GetMemory(ctx, expected.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got != expected {
+		t.Errorf("got %+v, want %+v", got, expected)
+	}
+}
+
+func TestDeleteMemory(t *testing.T) {
+	database := testDB(t)
+	ctx := context.Background()
+
+	journal := seedJournal(t, database)
+
+	memory, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"Test memory",
+		"Test body",
+		[]string{"Go"},
+	)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tag, err := database.GetTagByTitle(ctx, "Go")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := database.DeleteMemory(ctx, memory.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = database.GetMemory(ctx, memory.ID)
+	if !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("got error %v, want sql.ErrNoRows", err)
+	}
+
+	var count int
+
+	err = database.QueryRowContext(
+		ctx,
+		`
+		SELECT COUNT(*)
+		FROM memory_tag
+		WHERE memory_id = ?
+		`,
+		memory.ID,
+	).Scan(&count)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if count != 0 {
+		t.Errorf("got %d memory_tag rows, want 0", count)
+	}
+
+	_, err = database.GetTag(ctx, tag.ID)
+	if err != nil {
+		t.Errorf("tag was deleted with memory: %v", err)
+	}
+}
+
+func TestGetMemoryNotFound(t *testing.T) {
+	database := testDB(t)
+
+	_, err := database.GetMemory(context.Background(), 123)
+
+	if !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("got error %v, want sql.ErrNoRows", err)
+	}
+}
+
+func TestDeleteMemoryDoesNotDeleteOtherMemories(t *testing.T) {
+	database := testDB(t)
+
+	ctx := context.Background()
+
+	journal := seedJournal(t, database)
+
+	first, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"First memory",
+		"First body",
+		[]string{"Go"},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	second, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"Second memory",
+		"Second body",
+		[]string{"Go"},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := database.DeleteMemory(ctx, first.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := database.GetMemory(ctx, second.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got.ID != second.ID {
+		t.Errorf("got memory ID %d, want %d", got.ID, second.ID)
+	}
+}

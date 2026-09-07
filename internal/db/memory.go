@@ -167,6 +167,52 @@ func (db *DB) CreateMemory(
 	return memory, nil
 }
 
+// GetMemory retrieves a memory by its ID.
+// It returns an error if the memory cannot be retrieved.
+func (db *DB) GetMemory(
+	ctx context.Context,
+	memoryID int64,
+) (Memory, error) {
+	var memory Memory
+
+	queryString := `
+	SELECT * FROM memory
+	WHERE id = ?
+	`
+
+	err := db.QueryRowContext(ctx, queryString, memoryID).Scan(
+		&memory.ID,
+		&memory.JournalID,
+		&memory.MemoryDate,
+		&memory.Title,
+		&memory.Body,
+		&memory.Created,
+		&memory.Modified,
+	)
+	return memory, err
+}
+
+// DeleteMemory creates a new memory in the database.
+// It returns an error if the operation fails.
+func (db *DB) DeleteMemory(
+	ctx context.Context,
+	memoryID int64,
+) error {
+
+	queryString := `
+	DELETE FROM memory
+	WHERE id = ?
+	`
+
+	_, err := db.ExecContext(ctx, queryString, memoryID)
+
+	return err
+}
+
+// ------------------
+// Private Helpers //
+// -----------------
+
 // getOrCreateTag creates a new tag in the database. If a tag with the same
 // title already exists in the database, the it returns that tag.
 //
