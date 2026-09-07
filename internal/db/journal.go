@@ -126,3 +126,20 @@ func (db *DB) UpdateJournalPassword(
 
 	return err
 }
+
+// DeleteJournal deletes a journal from the database.
+// It returns an error if the operation fails.
+func (db *DB) DeleteJournal(
+	ctx context.Context,
+	journalID int64,
+) error {
+
+	queryString := `
+	DELETE FROM journal
+	WHERE id = ?
+	`
+
+	_, err := db.ExecContext(ctx, queryString, journalID)
+
+	return err
+}

@@ -2,7 +2,10 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"testing"
+	"time"
 )
 
 func TestCreateJournal(t *testing.T) {
@@ -143,4 +146,71 @@ func TestUpdateJournalPassword(t *testing.T) {
 		)
 	}
 
+}
+
+func TestDeleteJournal(t *testing.T) {
+
+	ctx := context.Background()
+	database := testDB(t)
+
+	journal := seedJournal(t, database)
+
+	memory, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"Test memory",
+		"Test body",
+		[]string{"Go"},
+	)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tag, err := database.GetTagByTitle(ctx, "Go")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := database.DeleteJournal(ctx, journal.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// Journal is gone
+	_, err = database.GetJournal(ctx, journal.ID)
+	if !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("got error %v, want sql.ErrNoRows", err)
+	}
+
+	// Memory is gone
+	_, err = database.GetMemory(ctx, memory.ID)
+	if !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("got error %v, want sql.ErrNoRows", err)
+	}
+
+	// Memory-tag relationship is gone
+	var count int
+	err = database.QueryRowContext(
+		ctx,
+		`
+		SELECT COUNT(*)
+		FROM memory_tag
+		WHERE memory_id = ?
+		`,
+		memory.ID,
+	).Scan(&count)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if count != 0 {
+		t.Errorf("got %d memory_tag rows, want 0", count)
+	}
+
+	// Tag survives
+	_, err = database.GetTag(ctx, tag.ID)
+	if err != nil {
+		t.Errorf("tag was deleted with journal: %v", err)
+	}
 }
