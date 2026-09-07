@@ -192,7 +192,7 @@ func (db *DB) GetMemory(
 	return memory, err
 }
 
-// DeleteMemory creates a new memory in the database.
+// DeleteMemory deletes a memory from the database.
 // It returns an error if the operation fails.
 func (db *DB) DeleteMemory(
 	ctx context.Context,

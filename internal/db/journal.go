@@ -45,7 +45,7 @@ func (db *DB) CreateJournal(
 // It returns an error if the journal cannot be retrieved.
 func (db *DB) GetJournal(
 	ctx context.Context,
-	journalID string,
+	journalID int64,
 ) (Journal, error) {
 	var journal Journal
 

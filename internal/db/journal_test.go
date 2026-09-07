@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"testing"
 )
 
@@ -44,6 +43,22 @@ func TestCreateJournal(t *testing.T) {
 
 }
 
+func TestGetJournal(t *testing.T) {
+	database := testDB(t)
+
+	journalExpected := seedJournal(t, database)
+
+	journal, err := database.GetJournal(context.Background(), journalExpected.ID)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if journalExpected != journal {
+		t.Errorf("got journal %+v, want %+v", journal, journalExpected)
+	}
+}
+
 func TestGetJournalByName(t *testing.T) {
 	database := testDB(t)
 
@@ -83,7 +98,7 @@ func TestUpdateJournalName(t *testing.T) {
 		t.Fatalf("UpdateJournalName() error = %v", err)
 	}
 
-	journal, err := database.GetJournal(ctx, fmt.Sprint(journalID))
+	journal, err := database.GetJournal(ctx, journalID)
 	if err != nil {
 		t.Fatalf("GetJournal() error = %v", err)
 	}
@@ -115,7 +130,7 @@ func TestUpdateJournalPassword(t *testing.T) {
 		t.Fatalf("UpdateJournalName() error = %v", err)
 	}
 
-	journal, err := database.GetJournal(ctx, fmt.Sprint(journalID))
+	journal, err := database.GetJournal(ctx, journalID)
 	if err != nil {
 		t.Fatalf("GetJournal() error = %v", err)
 	}
