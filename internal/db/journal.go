@@ -149,7 +149,7 @@ func (db *DB) DeleteJournal(
 // Useful for Home page list of journals.
 type JournalSummary struct {
 	ID          int64
-	Journalname string
+	JournalName string
 }
 
 func (db *DB) ListJournals(ctx context.Context) ([]JournalSummary, error) {
@@ -172,7 +172,7 @@ func (db *DB) ListJournals(ctx context.Context) ([]JournalSummary, error) {
 		var journalSummary JournalSummary
 		if err := rows.Scan(
 			&journalSummary.ID,
-			&journalSummary.Journalname,
+			&journalSummary.JournalName,
 		); err != nil {
 			return nil, err
 		}

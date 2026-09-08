@@ -9,12 +9,8 @@ import (
 	"time"
 
 	"github.com/shsiddhant/mone-pore/internal/db"
+	"github.com/shsiddhant/mone-pore/internal/handlers"
 )
-
-// homeHandler renders the home page.
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "মনে পড়ে")
-}
 
 func main() {
 
@@ -74,11 +70,16 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		return fmt.Errorf("migration runner failed: %w", err)
 	}
 
+	// Create application instance
+	app := &handlers.Application{
+		DB: database,
+	}
+
 	// Create router using ServerMux
 	mux := http.NewServeMux()
 
 	// Routes
-	mux.HandleFunc("GET /{$}", homeHandler)
+	mux.HandleFunc("GET /{$}", app.Home)
 
 	// Configure server
 	server := &http.Server{

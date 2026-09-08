@@ -1,0 +1,78 @@
+package templates
+
+import (
+	"github.com/shsiddhant/mone-pore/internal/db"
+	"github.com/shsiddhant/mone-pore/internal/route"
+)
+
+templ Layout(title string, quote string, navActions templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<!-- Link to Pico.css (Version 2) -->
+			<link
+				rel="stylesheet"
+				href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+			/>
+			<!-- Link to HTMX -->
+			<script src="https://unpkg.com"></script>
+			<title>{ title } - মনে পড়ে</title>
+		</head>
+		<body>
+			<!-- Top Navigation Bar Header wrapped in Pico's structural container -->
+			<header class="container">
+				<nav>
+					<ul>
+						<li>
+							<a href="/" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
+								<h1
+									style="
+									font-size: 2.5rem;
+									font-weight: 800;
+									letter-spacing: -1px;
+									color: var(--pico-primary);
+									margin: 0;
+									line-height: 1.1;
+								"
+								>
+									মনে পড়ে
+								</h1>
+							</a>
+						</li>
+					</ul>
+					<ul id="nav-actions">
+						if navActions != nil {
+							@navActions
+						}
+					</ul>
+				</nav>
+			</header>
+			<!-- Core Application Frame -->
+			<main class="container" style="padding-top: 0;">
+				if quote != "" {
+					@QuoteBlock(quote)
+				}
+				<!-- This is where home.templ or journal.templ will render -->
+				{ children... }
+			</main>
+		</body>
+	</html>
+}
+
+templ QuoteBlock(quote string) {
+	<blockquote
+		style="
+			font-style: italic;
+			color: var(--pico-muted-color);
+			padding-left: 1rem;
+			"
+	>
+		“ { quote } ”
+	</blockquote>
+}
+
+templ JournalItem(journal db.JournalSummary) {
+	<a href={ route.JournalURL(journal.ID) }>{ journal.JournalName }</a>
+}
