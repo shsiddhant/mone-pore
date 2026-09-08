@@ -143,3 +143,43 @@ func (db *DB) DeleteJournal(
 
 	return err
 }
+
+// JournalSummary represents a basic summary of a journal.
+//
+// Useful for Home page list of journals.
+type JournalSummary struct {
+	ID          int64
+	Journalname string
+}
+
+func (db *DB) ListJournals(ctx context.Context) ([]JournalSummary, error) {
+	queryString := `
+	SELECT id, journalname
+	FROM journal
+	ORDER BY journalname
+	`
+
+	rows, err := db.QueryContext(ctx, queryString)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var journals []JournalSummary
+
+	for rows.Next() {
+		var journalSummary JournalSummary
+		if err := rows.Scan(
+			&journalSummary.ID,
+			&journalSummary.Journalname,
+		); err != nil {
+			return nil, err
+		}
+		journals = append(journals, journalSummary)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return journals, err
+}
