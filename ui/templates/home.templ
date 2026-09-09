@@ -5,7 +5,7 @@ import "github.com/shsiddhant/mone-pore/internal/db"
 var homeQuote = `You can erase someone from your mind. Getting them out of your heart is another story.`
 
 templ Home(journals []db.JournalSummary) {
-	@Layout("Home", homeQuote, nil) {
+	@Layout("Home", homeQuote, NavActionsProps{}) {
 		<h2>Your Journals</h2>
 		<ul>
 			for _, journal := range journals {

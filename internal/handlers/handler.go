@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -12,6 +11,7 @@ import (
 
 	"github.com/shsiddhant/mone-pore/internal/db"
 	"github.com/shsiddhant/mone-pore/internal/route"
+	"github.com/shsiddhant/mone-pore/internal/session"
 	"github.com/shsiddhant/mone-pore/ui/templates"
 )
 
@@ -50,7 +50,7 @@ func (app *Application) UnlockJournalForm(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	key := fmt.Sprintf("journal_unlocked:%d", journalID)
+	key := session.JournalUnlockedKey(journalID)
 
 	if app.SessionManager.GetBool(r.Context(), key) {
 		w.Header().Set("HX-Redirect", route.JournalURL(journalID))
@@ -136,7 +136,7 @@ func (app *Application) UnlockJournal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set session key
-	key := fmt.Sprintf("journal_unlocked:%d", journalID)
+	key := session.JournalUnlockedKey(journalID)
 	app.SessionManager.Put(r.Context(), key, true)
 
 	// Redirect to the journal's index page.
@@ -175,6 +175,40 @@ func (app *Application) JournalIndex(w http.ResponseWriter, r *http.Request) {
 		internalServerError(w)
 		return
 	}
+}
+
+// LockJournal locks a journal for the session and redirects to home page.
+//
+//Expected method: POST
+
+func (app *Application) LockJournal(w http.ResponseWriter, r *http.Request) {
+
+	// Ensure the request is a POST method
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	journalID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	key := session.JournalUnlockedKey(journalID)
+
+	// Remove key if present
+	if app.SessionManager.GetBool(r.Context(), key) {
+		app.SessionManager.Remove(r.Context(), key)
+	}
+
+	// Redirect to the home.
+	// Use HX-Redirect so HTMX performs a full-page navigation.
+	// A normal HTTP redirect is followed by HTMX as part of the request,
+	// causing the redirected page to be swapped into hx-target instead.
+	w.Header().Set("HX-Redirect", "/")
+	w.WriteHeader(http.StatusNoContent)
+
 }
 
 // checkPasswordHash compares password and password hash.

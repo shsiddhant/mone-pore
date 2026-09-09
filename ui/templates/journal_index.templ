@@ -1,9 +1,16 @@
 package templates
 
 import "github.com/shsiddhant/mone-pore/internal/db"
+import "github.com/shsiddhant/mone-pore/internal/route"
 
 templ JournalIndex(journal db.Journal) {
-	@Layout(journal.JournalName, "Quote-JournalIndex", nil) {
+	@Layout(
+		journal.JournalName,
+		"Quote-JournalIndex",
+		NewNavActions(
+			NavItem(NavItemProps{Label: "Lock", Href: route.LockJournalURL(journal.ID), Method: "POST"}),
+		),
+	) {
 		<main>
 			<h1>{ journal.JournalName }</h1>
 			<p>Journal unlocked successfully.</p>

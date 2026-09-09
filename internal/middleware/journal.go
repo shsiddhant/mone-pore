@@ -1,11 +1,12 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/alexedwards/scs/v2"
+
+	"github.com/shsiddhant/mone-pore/internal/session"
 )
 
 // UnlockedJournalRequired is a middleware to ensure that the
@@ -23,7 +24,7 @@ func UnlockedJournalRequired(
 			return
 		}
 
-		key := fmt.Sprintf("journal_unlocked:%d", journalID)
+		key := session.JournalUnlockedKey(journalID)
 
 		if !sessionManager.GetBool(r.Context(), key) {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

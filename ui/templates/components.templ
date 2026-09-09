@@ -5,7 +5,7 @@ import (
 	"github.com/shsiddhant/mone-pore/internal/route"
 )
 
-templ Layout(title string, quote string, navActions templ.Component) {
+templ Layout(title string, quote string, navActionProps NavActionsProps) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -44,9 +44,7 @@ templ Layout(title string, quote string, navActions templ.Component) {
 						</li>
 					</ul>
 					<ul id="nav-actions">
-						if navActions != nil {
-							@navActions
-						}
+						@NavActions(navActionProps)
 					</ul>
 				</nav>
 			</header>
@@ -72,6 +70,48 @@ templ QuoteBlock(quote string) {
 	>
 		“ { quote } ”
 	</blockquote>
+}
+
+type NavItemComponent struct {
+	templ.Component
+}
+
+type NavItemProps struct {
+	Label  string
+	Href   string
+	Method string
+}
+
+func NavItem(props NavItemProps) NavItemComponent {
+	return NavItemComponent{
+		Component: navItemTemplate(props),
+	}
+}
+
+type NavActionsProps struct {
+	NavItems []NavItemComponent
+}
+
+func NewNavActions(items ...NavItemComponent) NavActionsProps {
+	return NavActionsProps{NavItems: items}
+}
+
+templ NavActions(props NavActionsProps) {
+	for _, item := range props.NavItems {
+		@item.Component
+	}
+}
+
+templ navItemTemplate(props NavItemProps) {
+	if props.Method == "POST" {
+		<button hx-post={ props.Href }>
+			{ props.Label }
+		</button>
+	} else {
+		<a href={ props.Href }>
+			{ props.Label }
+		</a>
+	}
 }
 
 templ JournalItem(journal db.JournalSummary) {

@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/shsiddhant/mone-pore/internal/db"
+import "github.com/shsiddhant/mone-pore/internal/route"
 
 func JournalIndex(journal db.Journal) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -50,7 +51,7 @@ func JournalIndex(journal db.Journal) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(journal.JournalName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 8, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 15, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -62,7 +63,13 @@ func JournalIndex(journal db.Journal) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Layout(journal.JournalName, "Quote-JournalIndex", nil).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(
+			journal.JournalName,
+			"Quote-JournalIndex",
+			NewNavActions(
+				NavItem(NavItemProps{Label: "Lock", Href: route.LockJournalURL(journal.ID), Method: "POST"}),
+			),
+		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

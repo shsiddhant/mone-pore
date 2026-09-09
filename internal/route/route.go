@@ -8,6 +8,12 @@ func JournalURL(journalID int64) string {
 	return fmt.Sprintf("/journal/%d", journalID)
 }
 
+// UnlockJournalURL returns the URL `/journal/{id}/unlock`
 func UnlockJournalURL(journalID int64) string {
 	return fmt.Sprintf("/journal/%d/unlock", journalID)
+}
+
+// LockJournalURL returns the URL `/journal/{id}/lock`
+func LockJournalURL(journalID int64) string {
+	return fmt.Sprintf("/journal/%d/lock", journalID)
 }

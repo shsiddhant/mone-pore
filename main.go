@@ -98,6 +98,7 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 	mux.HandleFunc("GET /{$}", app.Home)
 	mux.HandleFunc("GET /journal/{id}/unlock", app.UnlockJournalForm)
 	mux.HandleFunc("POST /journal/{id}/unlock", app.UnlockJournal)
+	mux.HandleFunc("POST /journal/{id}/lock", app.LockJournal)
 
 	// Unlocked Journal Required.
 	mux.Handle(
