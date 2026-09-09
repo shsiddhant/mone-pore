@@ -3,6 +3,11 @@ package route
 
 import "fmt"
 
+// HomeURL returns the URL for home page.
+func HomeURL() string {
+	return "/"
+}
+
 // JournalURL returns the URL for a journal from its ID.
 func JournalURL(journalID int64) string {
 	return fmt.Sprintf("/journal/%d", journalID)

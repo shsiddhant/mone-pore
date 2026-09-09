@@ -15,7 +15,7 @@ templ JournalIndex(journal db.Journal) {
 			<h1>{ journal.JournalName }</h1>
 			<p>Journal unlocked successfully.</p>
 			<p>
-				<a href="/">Back to journals</a>
+				<a href={ route.HomeURL() }>Back to journals</a>
 			</p>
 		</main>
 	}

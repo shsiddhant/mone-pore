@@ -6,6 +6,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 
+	"github.com/shsiddhant/mone-pore/internal/route"
 	"github.com/shsiddhant/mone-pore/internal/session"
 )
 
@@ -27,7 +28,7 @@ func UnlockedJournalRequired(
 		key := session.JournalUnlockedKey(journalID)
 
 		if !sessionManager.GetBool(r.Context(), key) {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Redirect(w, r, route.HomeURL(), http.StatusSeeOther)
 			return
 		}
 

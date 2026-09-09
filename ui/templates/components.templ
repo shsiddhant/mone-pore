@@ -27,7 +27,7 @@ templ Layout(title string, quote string, navActionProps NavActionsProps) {
 				<nav>
 					<ul>
 						<li>
-							<a href="/" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
+							<a href={ route.HomeURL() } style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
 								<h1
 									style="
 									font-size: 2.5rem;
@@ -77,9 +77,10 @@ type NavItemComponent struct {
 }
 
 type NavItemProps struct {
-	Label  string
-	Href   string
-	Method string
+	Label    string
+	Href     string
+	Method   string
+	IsActive bool
 }
 
 func NavItem(props NavItemProps) NavItemComponent {
@@ -103,12 +104,26 @@ templ NavActions(props NavActionsProps) {
 }
 
 templ navItemTemplate(props NavItemProps) {
+	{{
+		var ariaCurrent string
+		if props.IsActive {
+			ariaCurrent = "page"
+		}
+	}}
 	if props.Method == "POST" {
-		<button hx-post={ props.Href }>
+		<button
+			hx-post={ props.Href }
+			class={ "nav-action", templ.KV("active", props.IsActive) }
+			aria-current={ ariaCurrent }
+		>
 			{ props.Label }
 		</button>
 	} else {
-		<a href={ props.Href }>
+		<a
+			href={ props.Href }
+			class={ "nav-action", templ.KV("active", props.IsActive) }
+			aria-current={ ariaCurrent }
+		>
 			{ props.Label }
 		</a>
 	}

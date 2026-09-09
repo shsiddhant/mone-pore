@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/shsiddhant/mone-pore/internal/db"
+import "github.com/shsiddhant/mone-pore/internal/route"
 
 var homeQuote = `You can erase someone from your mind. Getting them out of your heart is another story.`
 
@@ -69,7 +70,13 @@ func Home(journals []db.JournalSummary) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Layout("Home", homeQuote, NavActionsProps{}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(
+			"Home",
+			homeQuote,
+			NewNavActions(
+				NavItem(NavItemProps{Label: "Home", Href: route.HomeURL(), IsActive: true}),
+			),
+		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

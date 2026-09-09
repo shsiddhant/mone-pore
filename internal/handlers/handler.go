@@ -206,7 +206,7 @@ func (app *Application) LockJournal(w http.ResponseWriter, r *http.Request) {
 	// Use HX-Redirect so HTMX performs a full-page navigation.
 	// A normal HTTP redirect is followed by HTMX as part of the request,
 	// causing the redirected page to be swapped into hx-target instead.
-	w.Header().Set("HX-Redirect", "/")
+	w.Header().Set("HX-Redirect", route.HomeURL())
 	w.WriteHeader(http.StatusNoContent)
 
 }
