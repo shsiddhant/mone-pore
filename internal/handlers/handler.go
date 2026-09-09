@@ -3,8 +3,10 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/alexedwards/scs/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -211,8 +213,91 @@ func (app *Application) LockJournal(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// NewJournalPage renders the page for creating a new journal.
+//
+// Expected method: GET
+func (app *Application) NewJournalPage(w http.ResponseWriter, r *http.Request) {
+	if err := templates.NewJournal("").Render(r.Context(), w); err != nil {
+		internalServerError(w)
+		return
+	}
+}
+
+// NewJournal attempts to create a new journal in the database.
+// If successful, it redirects to home.
+// If there's an error message, it renders the NewJournalPage again,
+// with the same error message.
+//
+// Expected method: POST
+func (app *Application) NewJournal(w http.ResponseWriter, r *http.Request) {
+
+	// Ensure the request is a POST method
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	journalName := r.FormValue("journalname")
+	password := r.FormValue("password")
+
+	errorMessage := ""
+
+	if strings.TrimSpace(journalName) == "" {
+		errorMessage = "Journal name cannot be blank"
+	}
+
+	if strings.TrimSpace(password) == "" {
+		errorMessage = "Password cannot be blank"
+	}
+
+	passwordHash, err := hashPassword(password)
+
+	if err != nil {
+		internalServerError(w)
+		return
+	}
+
+	_, err = app.DB.CreateJournal(r.Context(), journalName, passwordHash)
+
+	err = db.CheckError(err)
+
+	if errors.Is(err, db.ErrUniqueConstraint) {
+		errorMessage = fmt.Sprintf(
+			"A journal with name '%s' already exists.",
+			journalName,
+		)
+	}
+
+	if errorMessage != "" {
+		if err := templates.NewJournal(errorMessage).
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+			return
+		}
+		return
+	}
+
+	http.Redirect(w, r, route.HomeURL(), http.StatusSeeOther)
+
+}
+
 // checkPasswordHash compares password and password hash.
 func checkPasswordHash(password string, passwordHash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	return err == nil
+}
+
+// hashPassword uses bcrypt to hash a password.
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }

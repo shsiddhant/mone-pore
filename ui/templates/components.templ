@@ -99,7 +99,9 @@ func NewNavActions(items ...NavItemComponent) NavActionsProps {
 
 templ NavActions(props NavActionsProps) {
 	for _, item := range props.NavItems {
-		@item.Component
+		<li>
+			@item.Component
+		</li>
 	}
 }
 
@@ -127,6 +129,26 @@ templ navItemTemplate(props NavItemProps) {
 			{ props.Label }
 		</a>
 	}
+}
+
+func GlobalNavActions(activeURL string) NavActionsProps {
+	itemProps := []NavItemProps{
+		NavItemProps{Label: "Home", Href: route.HomeURL(), Method: "GET"},
+		NavItemProps{Label: "New Journal", Href: route.NewJournalURL(), Method: "GET"},
+	}
+
+	components := []NavItemComponent{}
+
+	for _, itemProp := range itemProps {
+		if itemProp.Href == activeURL {
+			itemProp.IsActive = true
+		}
+		components = append(components, NavItem(itemProp))
+
+	}
+
+	return NewNavActions(components...)
+
 }
 
 templ JournalItem(journal db.JournalSummary) {

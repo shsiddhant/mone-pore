@@ -22,3 +22,8 @@ func UnlockJournalURL(journalID int64) string {
 func LockJournalURL(journalID int64) string {
 	return fmt.Sprintf("/journal/%d/lock", journalID)
 }
+
+// NewJournalURL return the URL /journal/new
+func NewJournalURL() string {
+	return "/journal/new"
+}

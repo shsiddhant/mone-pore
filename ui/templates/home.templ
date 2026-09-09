@@ -9,9 +9,7 @@ templ Home(journals []db.JournalSummary) {
 	@Layout(
 		"Home",
 		homeQuote,
-		NewNavActions(
-			NavItem(NavItemProps{Label: "Home", Href: route.HomeURL(), IsActive: true}),
-		),
+		GlobalNavActions(route.HomeURL()),
 	) {
 		<h2>Your Journals</h2>
 		<ul>

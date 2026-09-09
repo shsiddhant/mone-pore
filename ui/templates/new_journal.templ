@@ -1,0 +1,53 @@
+package templates
+
+import "github.com/shsiddhant/mone-pore/internal/route"
+
+templ NewJournalForm(errorMessage string) {
+	<form action={ route.NewJournalURL() } id="new-journal-form" method="post">
+		if errorMessage != "" {
+			<p
+				role="alert"
+				class="error-message"
+				style="color: var(--pico-form-element-invalid-border-color);font-weight: bold; margin-bottom: var(--pico-spacing);"
+			>
+				{ errorMessage }
+			</p>
+		}
+		<fieldset>
+			<label for="journalname">Journal Name</label>
+			<input
+				type="username"
+				id="journalname"
+				name="journalname"
+				placeholder="Journal name"
+				autocomplete
+			/>
+			<label for="password">Password</label>
+			<input
+				type="password"
+				id="password"
+				name="password"
+				placeholder="Password"
+				autocomplete="new-password"
+			/>
+		</fieldset>
+		<input
+			type="submit"
+			value="Create"
+		/>
+	</form>
+}
+
+var newJournalQuote = `"I still thought you were going to save me. Even after that."
+	"I know."`
+
+templ NewJournal(errorMessage string) {
+	@Layout(
+		"New Journal",
+		newJournalQuote,
+		GlobalNavActions(route.NewJournalURL()),
+	) {
+		<h2>Create New Journal</h2>
+		@NewJournalForm(errorMessage)
+	}
+}

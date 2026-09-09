@@ -7,20 +7,19 @@ import (
 	sqlite3 "modernc.org/sqlite/lib"
 )
 
-var ErrIntegrity = errors.New("database integrity violation")
+var ErrUniqueConstraint = errors.New("database unique constraint violation")
 
-// CheckError returns ErrIntegrity if error is sqlite3 constraint violation.
+// CheckError returns ErrIntegrity if error is sqlite3 unique constraint violation.
 // Otherwise returns the original error.
 func CheckError(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	var sqliteErr *sqlite.Error
+	if sqliteErr, ok := errors.AsType[*sqlite.Error](err); ok {
+		if sqliteErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
 
-	if errors.Is(err, sqliteErr) {
-		if sqliteErr.Code() == sqlite3.SQLITE_CONSTRAINT {
-			return ErrIntegrity
+			return ErrUniqueConstraint
 		}
 	}
 	return err
