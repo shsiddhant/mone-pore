@@ -11,7 +11,9 @@ import templruntime "github.com/a-h/templ/runtime"
 import "github.com/shsiddhant/mone-pore/internal/db"
 import "github.com/shsiddhant/mone-pore/internal/route"
 
-var homeQuote = `You can erase someone from your mind. Getting them out of your heart is another story.`
+var homeQuoteLines = []string{
+	`You can erase someone from your mind. Getting them out of your heart is another story.`,
+}
 
 func Home(journals []db.JournalSummary) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -72,7 +74,7 @@ func Home(journals []db.JournalSummary) templ.Component {
 		})
 		templ_7745c5c3_Err = Layout(
 			"Home",
-			homeQuote,
+			homeQuoteLines,
 			GlobalNavActions(route.HomeURL()),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

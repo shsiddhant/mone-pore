@@ -5,7 +5,7 @@ import (
 	"github.com/shsiddhant/mone-pore/internal/route"
 )
 
-templ Layout(title string, quote string, navActionProps NavActionsProps) {
+templ Layout(title string, quoteLines []string, navActionProps NavActionsProps) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -50,9 +50,7 @@ templ Layout(title string, quote string, navActionProps NavActionsProps) {
 			</header>
 			<!-- Core Application Frame -->
 			<main class="container" style="padding-top: 0;">
-				if quote != "" {
-					@QuoteBlock(quote)
-				}
+				@QuoteBlock(quoteLines)
 				<!-- This is where home.templ or journal.templ will render -->
 				{ children... }
 			</main>
@@ -60,7 +58,7 @@ templ Layout(title string, quote string, navActionProps NavActionsProps) {
 	</html>
 }
 
-templ QuoteBlock(quote string) {
+templ QuoteBlock(quoteLines []string) {
 	<blockquote
 		style="
 			font-style: italic;
@@ -68,7 +66,14 @@ templ QuoteBlock(quote string) {
 			padding-left: 1rem;
 			"
 	>
-		“ { quote } ”
+		for i, line := range quoteLines {
+			if i < len(quoteLines) - 1 {
+				“ { line } ”
+				<br/>
+			} else {
+				“ { line } ”
+			}
+		}
 	</blockquote>
 }
 

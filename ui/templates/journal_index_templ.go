@@ -11,6 +11,11 @@ import templruntime "github.com/a-h/templ/runtime"
 import "github.com/shsiddhant/mone-pore/internal/db"
 import "github.com/shsiddhant/mone-pore/internal/route"
 
+var journalIndexQuoteLines = []string{
+	`Joely? What if you stayed this time?`,
+	`I walked out the door. There's no memory left.`,
+}
+
 func JournalIndex(journal db.Journal) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -51,7 +56,7 @@ func JournalIndex(journal db.Journal) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(journal.JournalName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 15, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 20, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -64,7 +69,7 @@ func JournalIndex(journal db.Journal) templ.Component {
 			var templ_7745c5c3_Var4 templ.SafeURL
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(route.HomeURL())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 18, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 23, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -78,7 +83,7 @@ func JournalIndex(journal db.Journal) templ.Component {
 		})
 		templ_7745c5c3_Err = Layout(
 			journal.JournalName,
-			"Quote-JournalIndex",
+			journalIndexQuoteLines,
 			NewNavActions(
 				NavItem(NavItemProps{Label: "Lock", Href: route.LockJournalURL(journal.ID), Method: "POST"}),
 			),

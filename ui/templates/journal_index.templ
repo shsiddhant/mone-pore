@@ -3,10 +3,15 @@ package templates
 import "github.com/shsiddhant/mone-pore/internal/db"
 import "github.com/shsiddhant/mone-pore/internal/route"
 
+var journalIndexQuoteLines = []string{
+	`Joely? What if you stayed this time?`,
+	`I walked out the door. There's no memory left.`,
+}
+
 templ JournalIndex(journal db.Journal) {
 	@Layout(
 		journal.JournalName,
-		"Quote-JournalIndex",
+		journalIndexQuoteLines,
 		NewNavActions(
 			NavItem(NavItemProps{Label: "Lock", Href: route.LockJournalURL(journal.ID), Method: "POST"}),
 		),

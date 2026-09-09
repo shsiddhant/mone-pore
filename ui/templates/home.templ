@@ -3,12 +3,14 @@ package templates
 import "github.com/shsiddhant/mone-pore/internal/db"
 import "github.com/shsiddhant/mone-pore/internal/route"
 
-var homeQuote = `You can erase someone from your mind. Getting them out of your heart is another story.`
+var homeQuoteLines = []string{
+	`You can erase someone from your mind. Getting them out of your heart is another story.`,
+}
 
 templ Home(journals []db.JournalSummary) {
 	@Layout(
 		"Home",
-		homeQuote,
+		homeQuoteLines,
 		GlobalNavActions(route.HomeURL()),
 	) {
 		<h2>Your Journals</h2>

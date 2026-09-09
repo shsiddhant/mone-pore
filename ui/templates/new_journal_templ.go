@@ -75,8 +75,10 @@ func NewJournalForm(errorMessage string) templ.Component {
 	})
 }
 
-var newJournalQuote = `"I still thought you were going to save me. Even after that."
-	"I know."`
+var newJournalQuoteLines = []string{
+	`I still thought you were going to save me. Even after that.`,
+	`I know.`,
+}
 
 func NewJournal(errorMessage string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -123,7 +125,7 @@ func NewJournal(errorMessage string) templ.Component {
 		})
 		templ_7745c5c3_Err = Layout(
 			"New Journal",
-			newJournalQuote,
+			newJournalQuoteLines,
 			GlobalNavActions(route.NewJournalURL()),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

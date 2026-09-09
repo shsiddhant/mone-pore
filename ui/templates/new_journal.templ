@@ -38,13 +38,15 @@ templ NewJournalForm(errorMessage string) {
 	</form>
 }
 
-var newJournalQuote = `"I still thought you were going to save me. Even after that."
-	"I know."`
+var newJournalQuoteLines = []string{
+	`I still thought you were going to save me. Even after that.`,
+	`I know.`,
+}
 
 templ NewJournal(errorMessage string) {
 	@Layout(
 		"New Journal",
-		newJournalQuote,
+		newJournalQuoteLines,
 		GlobalNavActions(route.NewJournalURL()),
 	) {
 		<h2>Create New Journal</h2>
