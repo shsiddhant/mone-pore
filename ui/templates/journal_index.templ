@@ -1,0 +1,15 @@
+package templates
+
+import "github.com/shsiddhant/mone-pore/internal/db"
+
+templ JournalIndex(journal db.Journal) {
+	@Layout(journal.JournalName, "Quote-JournalIndex", nil) {
+		<main>
+			<h1>{ journal.JournalName }</h1>
+			<p>Journal unlocked successfully.</p>
+			<p>
+				<a href="/">Back to journals</a>
+			</p>
+		</main>
+	}
+}

@@ -1,0 +1,44 @@
+package templates
+
+import (
+	"github.com/shsiddhant/mone-pore/internal/db"
+	"github.com/shsiddhant/mone-pore/internal/route"
+)
+
+templ UnlockJournal(journal db.JournalSummary, errorMessage string) {
+	<dialog open>
+		<article>
+			<h2>Unlock journal - { journal.JournalName }</h2>
+			<p>Enter the journal password</p>
+			<form
+				id="unlock-form"
+				hx-post={ route.UnlockJournalURL(journal.ID) }
+				hx-target="#unlock-modal"
+				hx-swap="innerHTML"
+			>
+				<label for="password">Password</label>
+				<input
+					type="password"
+					id="password"
+					name="password"
+					placeholder="Password"
+					autocomplete="current-password"
+					autofocus
+				/>
+				if errorMessage != "" {
+					<small role="alert">{ errorMessage }</small>
+				}
+			</form>
+			<footer>
+				<button
+					type="button"
+					class="secondary"
+					hx-on:click="this.closest('dialog').remove()"
+				>
+					Cancel
+				</button>
+				<button type="submit" form="unlock-form" style="width: auto;">Unlock</button>
+			</footer>
+		</article>
+	</dialog>
+}

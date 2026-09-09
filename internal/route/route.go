@@ -5,5 +5,9 @@ import "fmt"
 
 // JournalURL returns the URL for a journal from its ID.
 func JournalURL(journalID int64) string {
-	return fmt.Sprintf("/journals/%d", journalID)
+	return fmt.Sprintf("/journal/%d", journalID)
+}
+
+func UnlockJournalURL(journalID int64) string {
+	return fmt.Sprintf("/journal/%d/unlock", journalID)
 }

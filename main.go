@@ -8,8 +8,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/alexedwards/scs/sqlite3store"
+	"github.com/alexedwards/scs/v2"
+
 	"github.com/shsiddhant/mone-pore/internal/db"
 	"github.com/shsiddhant/mone-pore/internal/handlers"
+	"github.com/shsiddhant/mone-pore/internal/middleware"
 )
 
 func main() {
@@ -70,9 +74,21 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		return fmt.Errorf("migration runner failed: %w", err)
 	}
 
+	// Initialize a new session manager
+	sessionManager := scs.New()
+
+	// Configure session store, lifetime, and idle timeout.
+	sessionManager.Store = sqlite3store.New(database.DB)
+	sessionManager.Lifetime = 30 * time.Minute
+	sessionManager.IdleTimeout = 15 * time.Minute
+
+	// Configure cookies
+	sessionManager.Cookie.Name = appName + "-session"
+
 	// Create application instance
 	app := &handlers.Application{
-		DB: database,
+		DB:             database,
+		SessionManager: sessionManager,
 	}
 
 	// Create router using ServerMux
@@ -80,11 +96,24 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 
 	// Routes
 	mux.HandleFunc("GET /{$}", app.Home)
+	mux.HandleFunc("GET /journal/{id}/unlock", app.UnlockJournalForm)
+	mux.HandleFunc("POST /journal/{id}/unlock", app.UnlockJournal)
+
+	// Unlocked Journal Required.
+	mux.Handle(
+		"GET /journal/{id}",
+		middleware.UnlockedJournalRequired(
+			app.SessionManager, http.HandlerFunc(app.JournalIndex)),
+	)
+
+	// Global middlewares
+	withCSRF := middleware.CSRF(mux)
+	withSession := app.SessionManager.LoadAndSave(withCSRF)
 
 	// Configure server
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      mux,
+		Handler:      withSession,
 		ReadTimeout:  timeout,
 		WriteTimeout: timeout,
 		IdleTimeout:  timeout,

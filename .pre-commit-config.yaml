@@ -1,0 +1,10 @@
+repos:
+  # Local hook to ensure generated templ files are up to date
+  - repo: local
+    hooks:
+      - id: templ-generate
+        name: templ-generate
+        entry: bash -c 'go tool templ generate && git diff --exit-code'
+        language: system
+        files: '\.templ$'
+        pass_filenames: false
