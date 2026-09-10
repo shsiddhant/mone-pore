@@ -108,6 +108,18 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		middleware.UnlockedJournalRequired(
 			app.SessionManager, http.HandlerFunc(app.JournalIndex)),
 	)
+	mux.Handle(
+		"GET /journal/{id}/memory/new", // NewMemoryPage: GET
+		middleware.UnlockedJournalRequired(
+			app.SessionManager, http.HandlerFunc(app.NewMemoryPage),
+		),
+	)
+	mux.Handle(
+		"POST /journal/{id}/memory/new", // NewMemory: POST
+		middleware.UnlockedJournalRequired(
+			app.SessionManager, http.HandlerFunc(app.NewMemory),
+		),
+	)
 
 	// Global middlewares
 	withCSRF := middleware.CSRF(mux)

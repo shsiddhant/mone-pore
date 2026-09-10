@@ -16,6 +16,26 @@ var journalIndexQuoteLines = []string{
 	`I walked out the door. There's no memory left.`,
 }
 
+func JournalNavActions(journalID int64, activeURL string) NavActionsProps {
+	itemProps := []NavItemProps{
+		NavItemProps{Label: "Timeline", Href: route.JournalURL(journalID), Method: "GET"},
+		NavItemProps{Label: "New Memory", Href: route.NewMemoryURL(journalID), Method: "GET"},
+		NavItemProps{Label: "Lock", Href: route.LockJournalURL(journalID), Method: "POST"},
+	}
+
+	components := []NavItemComponent{}
+
+	for _, itemProp := range itemProps {
+		if itemProp.Href == activeURL {
+			itemProp.IsActive = true
+		}
+		components = append(components, NavItem(itemProp))
+
+	}
+
+	return NewNavActions(components...)
+}
+
 func JournalIndex(journal db.Journal) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -56,7 +76,7 @@ func JournalIndex(journal db.Journal) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(journal.JournalName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 20, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 38, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -69,7 +89,7 @@ func JournalIndex(journal db.Journal) templ.Component {
 			var templ_7745c5c3_Var4 templ.SafeURL
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(route.HomeURL())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 23, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/journal_index.templ`, Line: 41, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -84,9 +104,7 @@ func JournalIndex(journal db.Journal) templ.Component {
 		templ_7745c5c3_Err = Layout(
 			journal.JournalName,
 			journalIndexQuoteLines,
-			NewNavActions(
-				NavItem(NavItemProps{Label: "Lock", Href: route.LockJournalURL(journal.ID), Method: "POST"}),
-			),
+			JournalNavActions(journal.ID, route.JournalURL(journal.ID)),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

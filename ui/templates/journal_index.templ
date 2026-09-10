@@ -8,13 +8,31 @@ var journalIndexQuoteLines = []string{
 	`I walked out the door. There's no memory left.`,
 }
 
+func JournalNavActions(journalID int64, activeURL string) NavActionsProps {
+	itemProps := []NavItemProps{
+		NavItemProps{Label: "Timeline", Href: route.JournalURL(journalID), Method: "GET"},
+		NavItemProps{Label: "New Memory", Href: route.NewMemoryURL(journalID), Method: "GET"},
+		NavItemProps{Label: "Lock", Href: route.LockJournalURL(journalID), Method: "POST"},
+	}
+
+	components := []NavItemComponent{}
+
+	for _, itemProp := range itemProps {
+		if itemProp.Href == activeURL {
+			itemProp.IsActive = true
+		}
+		components = append(components, NavItem(itemProp))
+
+	}
+
+	return NewNavActions(components...)
+}
+
 templ JournalIndex(journal db.Journal) {
 	@Layout(
 		journal.JournalName,
 		journalIndexQuoteLines,
-		NewNavActions(
-			NavItem(NavItemProps{Label: "Lock", Href: route.LockJournalURL(journal.ID), Method: "POST"}),
-		),
+		JournalNavActions(journal.ID, route.JournalURL(journal.ID)),
 	) {
 		<main>
 			<h1>{ journal.JournalName }</h1>

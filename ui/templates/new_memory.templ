@@ -1,0 +1,58 @@
+package templates
+
+import "github.com/shsiddhant/mone-pore/internal/route"
+import "github.com/shsiddhant/mone-pore/internal/db"
+
+templ NewMemoryForm(journalId int64, errorMessage string) {
+	<form
+		action={ route.NewMemoryURL(journalId) }
+		id="new-memory-form"
+		method="post"
+		autocomplete="off"
+	>
+		if errorMessage != "" {
+			<p
+				role="alert"
+				class="error-message"
+				style="color: var(--pico-form-element-invalid-border-color);font-weight: bold; margin-bottom: var(--pico-spacing);"
+			>
+				{ errorMessage }
+			</p>
+		}
+		<fieldset class="grid">
+			<div>
+				<label for="memorydate">Date</label>
+				<input type="date" id="memorydate" name="memorydate" required/>
+			</div>
+			<div style="flex: 2;">
+				<label for="title">Title</label>
+				<input type="text" id="title" name="title" placeholder="Enter a title." required/>
+			</div>
+		</fieldset>
+		<fieldset>
+			<label for="body">Description</label>
+			<textarea id="body" name="body" rows="15" placeholder="Markdown is supported."></textarea>
+		</fieldset>
+		<fieldset>
+			<label for="tags">Tags</label>
+			<input type="text" id="tags" name="tags" placeholder="Comma separated tags."/>
+		</fieldset>
+		<button type="submit">Create</button>
+	</form>
+}
+
+var newMemoryQuoteLines = []string{
+	`Please let me keep this memory, just this one.`,
+}
+
+templ NewMemory(journal db.Journal, errorMessage string) {
+	@Layout(
+		"New Memory",
+		newMemoryQuoteLines,
+		JournalNavActions(journal.ID, route.NewMemoryURL(journal.ID)),
+	) {
+		<h1>{ journal.JournalName }</h1>
+		<h2>New Memory</h2>
+		@NewMemoryForm(journal.ID, errorMessage)
+	}
+}
