@@ -102,23 +102,20 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 	mux.HandleFunc("GET /journal/new", app.NewJournalPage)
 	mux.HandleFunc("POST /journal/new", app.NewJournal)
 
+	unlockMiddleware := middleware.UnlockedJournalRequired(app.SessionManager)
+
 	// Unlocked Journal Required.
 	mux.Handle(
 		"GET /journal/{id}",
-		middleware.UnlockedJournalRequired(
-			app.SessionManager, http.HandlerFunc(app.JournalIndex)),
+		unlockMiddleware.Apply(app.JournalIndex),
 	)
 	mux.Handle(
 		"GET /journal/{id}/memory/new", // NewMemoryPage: GET
-		middleware.UnlockedJournalRequired(
-			app.SessionManager, http.HandlerFunc(app.NewMemoryPage),
-		),
+		unlockMiddleware.Apply(app.NewMemoryPage),
 	)
 	mux.Handle(
 		"POST /journal/{id}/memory/new", // NewMemory: POST
-		middleware.UnlockedJournalRequired(
-			app.SessionManager, http.HandlerFunc(app.NewMemory),
-		),
+		unlockMiddleware.Apply(app.NewMemory),
 	)
 
 	// Global middlewares
