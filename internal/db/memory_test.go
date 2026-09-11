@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"maps"
 	"testing"
 	"time"
 )
@@ -575,5 +576,57 @@ func TestDeleteMemoryDoesNotDeleteOtherMemories(t *testing.T) {
 
 	if got.ID != second.ID {
 		t.Errorf("got memory ID %d, want %d", got.ID, second.ID)
+	}
+}
+
+func TestGetTagsByMemoryID(t *testing.T) {
+	database := testDB(t)
+
+	ctx := context.Background()
+
+	journal := seedJournal(t, database)
+
+	first, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"First memory",
+		"First body",
+		[]string{"first", "common"},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"Second memory",
+		"Second body",
+		[]string{"second", "common"},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := database.GetTagsByMemoryID(ctx, first.ID)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	gotSet := make(map[string]struct{})
+	expectedSet := map[string]struct{}{
+		"first":  {},
+		"common": {},
+	}
+
+	for _, tag := range got {
+		gotSet[tag.Title] = struct{}{}
+	}
+
+	if !maps.Equal(gotSet, expectedSet) {
+		t.Errorf("got %s, want %s", gotSet, expectedSet)
 	}
 }

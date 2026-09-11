@@ -23,6 +23,12 @@ type Tag struct {
 	Title string
 }
 
+// MemoryDetail represents a denormalized memory.
+type MemoryDetail struct {
+	Memory Memory
+	Tags   []Tag
+}
+
 // CreateTag creates a new tag with the given title.
 // It returns the newly created tag or an error if the operation fails.
 func (db *DB) CreateTag(
@@ -82,6 +88,43 @@ func (db *DB) GetTagByTitle(
 		&tag.Title,
 	)
 	return tag, err
+}
+
+// GetTagsByMemoryID retrieves all tags for a memory.
+// It returns an error if tags cannot be retrieved.
+func (db *DB) GetTagsByMemoryID(
+	ctx context.Context,
+	memoryID int64,
+) ([]Tag, error) {
+
+	queryString := `
+	SELECT t.id, t.title
+	FROM tag t
+	JOIN memory_tag mt ON t.id = mt.tag_id
+	WHERE mt.memory_id = ?
+	`
+
+	rows, err := db.QueryContext(ctx, queryString, memoryID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	tags := []Tag{}
+
+	for rows.Next() {
+		var tag Tag
+		if err := rows.Scan(&tag.ID, &tag.Title); err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return tags, err
+
 }
 
 // CreateMemory creates a new memory in the database.
@@ -190,6 +233,33 @@ func (db *DB) GetMemory(
 		&memory.Modified,
 	)
 	return memory, err
+}
+
+// GetMemoryDetail returns MemoryDetail from memory ID.
+// It returns an error if the memory cannot be retrieved.
+func (db *DB) GetMemoryDetail(
+	ctx context.Context,
+	memoryID int64,
+) (MemoryDetail, error) {
+
+	var memoryDetail MemoryDetail
+
+	memory, err := db.GetMemory(ctx, memoryID)
+
+	if err != nil {
+		return memoryDetail, err
+	}
+
+	tags, err := db.GetTagsByMemoryID(ctx, memory.ID)
+
+	if err != nil {
+		return memoryDetail, err
+	}
+
+	memoryDetail.Memory = memory
+	memoryDetail.Tags = tags
+
+	return memoryDetail, nil
 }
 
 // DeleteMemory deletes a memory from the database.
