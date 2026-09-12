@@ -1,0 +1,63 @@
+package templates
+
+import "github.com/shsiddhant/mone-pore/internal/db"
+import "github.com/shsiddhant/mone-pore/internal/route"
+import "github.com/shsiddhant/mone-pore/internal/markdown"
+
+var memoryIndexQuoteLines = []string{
+	`This is it, Joel. It's going to be gone soon.`,
+	`I know.`,
+	`What do we do?`,
+	`Enjoy it.`,
+}
+
+func joinTags(tags []db.Tag) string {
+	tagString := ""
+	sep := ", "
+
+	for i, tag := range tags {
+		tagString = tagString + tag.Title
+
+		if i < len(tags)-1 {
+			tagString = tagString + sep
+		}
+	}
+	return tagString
+}
+
+templ MemoryIndex(memory db.MemoryDetail) {
+	@Layout(
+		memory.Memory.Title,
+		memoryIndexQuoteLines,
+		JournalNavActions(
+			memory.Memory.JournalID,
+			route.MemoryURL(memory.Memory.JournalID, memory.Memory.ID),
+		),
+	) {
+		<article>
+			<header>
+				<h2>{ memory.Memory.Title }</h2>
+				<small>
+					<strong>
+						<time datetime={ memory.Memory.MemoryDate.Format("2006-01-02") }>
+							{ memory.Memory.MemoryDate.Format("Mon, 02 Jan 2006") }
+						</time>
+					</strong>
+				</small>
+			</header>
+			<div class="memory-body markdown-content">
+				@markdown.ToHTML(memory.Memory.Body)
+			</div>
+			if len(memory.Tags) > 0 {
+				<footer>
+					<small>
+						<strong>Tags</strong>
+					</small>
+					<div class="tags">
+						{ joinTags(memory.Tags) }
+					</div>
+				</footer>
+			}
+		</article>
+	}
+}

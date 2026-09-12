@@ -117,6 +117,10 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		"POST /journal/{id}/memory/new", // NewMemory: POST
 		unlockMiddleware.Apply(app.NewMemory),
 	)
+	mux.Handle(
+		"GET /journal/{id}/memory/{memory_id}",
+		unlockMiddleware.Apply(app.MemoryIndex), // MemoryIndex: GET
+	)
 
 	// Global middlewares
 	withCSRF := middleware.CSRF(mux)

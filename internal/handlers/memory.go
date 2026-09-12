@@ -119,3 +119,34 @@ func (app *Application) NewMemory(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, route.JournalURL(journalID), http.StatusSeeOther)
 }
+
+// MemoryIndex renders the index page of a memory.
+//
+// Expected method: GET
+func (app *Application) MemoryIndex(w http.ResponseWriter, r *http.Request) {
+
+	memoryID, err := strconv.ParseInt(r.PathValue("memory_id"), 10, 64)
+
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	memoryDetail, err := app.DB.GetMemoryDetail(r.Context(), memoryID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.NotFound(w, r)
+			return
+		}
+
+		internalServerError(w)
+		return
+	}
+
+	if err := templates.MemoryIndex(memoryDetail).Render(r.Context(), w); err != nil {
+		internalServerError(w)
+		return
+	}
+
+}
