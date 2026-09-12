@@ -22,36 +22,9 @@ templ Layout(title string, quoteLines []string, navActionProps NavActionsProps) 
 			<title>{ title } - মনে পড়ে</title>
 		</head>
 		<body>
-			<!-- Top Navigation Bar Header wrapped in Pico's structural container -->
-			<header class="container">
-				<nav>
-					<ul>
-						<li>
-							<a href={ route.HomeURL() } style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
-								<h1
-									style="
-									font-size: 2.5rem;
-									font-weight: 800;
-									letter-spacing: -1px;
-									color: var(--pico-primary);
-									margin: 0;
-									line-height: 1.1;
-								"
-								>
-									মনে পড়ে
-								</h1>
-							</a>
-						</li>
-					</ul>
-					<ul id="nav-actions">
-						@NavActions(navActionProps)
-					</ul>
-				</nav>
-			</header>
-			<!-- Core Application Frame -->
+			@NavBar(navActionProps)
 			<main class="container" style="padding-top: 0;">
 				@QuoteBlock(quoteLines)
-				<!-- This is where home.templ or journal.templ will render -->
 				{ children... }
 			</main>
 		</body>
@@ -108,6 +81,65 @@ templ NavActions(props NavActionsProps) {
 			@item.Component
 		</li>
 	}
+}
+
+templ NavBar(navActionProps NavActionsProps) {
+	<style>
+		#nav-actions .nav-action:not(.active) {
+					color: var(--pico-muted-color);
+					background-color: transparent;
+					border-color: transparent;
+				}
+		#nav-actions .nav-action.active {
+			color: var(--pico-primary) !important;
+			font-weight: 600;
+		}
+		#nav-actions .nav-action:not(.active):hover {
+					color: var(--pico-primary);
+				}
+		.nav-links.open { display: flex !important; }
+		.menu-toggle { display: none; }
+		@media (max-width: 768px) {
+			.menu-toggle { display: block; }
+			.nav-links li { width: 100%; text-align: right; padding-bottom: 0; margin: 0;}
+			.nav-links { display: none !important; flex-direction: column; width: 100%; gap: 0.5rem; padding-top: 1rem; }
+			.nav-links.open { display: flex !important; }
+			nav { flex-wrap: wrap; }
+			nav ul:last-child { justify-content: flex-start; }
+		}
+	</style>
+	<header class="container">
+		<nav>
+			<ul>
+				<li>
+					<a href={ route.HomeURL() } style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
+						<h1
+							style="
+									font-size: 2.5rem;
+									font-weight: 800;
+									letter-spacing: -1px;
+									color: var(--pico-primary);
+									margin: 0;
+									line-height: 1.1;
+								"
+						>
+							মনে পড়ে
+						</h1>
+					</a>
+				</li>
+			</ul>
+			<ul class="menu-toggle">
+				<li>
+					<button class="outline secondary" onclick="document.getElementById('nav-actions').classList.toggle('open')">
+						Menu
+					</button>
+				</li>
+			</ul>
+			<ul id="nav-actions" class="nav-links">
+				@NavActions(navActionProps)
+			</ul>
+		</nav>
+	</header>
 }
 
 templ navItemTemplate(props NavItemProps) {
