@@ -15,25 +15,54 @@ import (
 
 type TimelineMap map[int]map[string][]db.MemoryDetail
 
-func BuildTimeline(memories []db.MemoryDetail, ordering db.Ordering) TimelineMap {
+type MonthGroup struct {
+	Month    string
+	Memories []db.MemoryDetail
+}
 
-	timeline := make(map[int]map[string][]db.MemoryDetail)
+type YearGroup struct {
+	Year   int
+	Months []MonthGroup
+}
 
-	addMemory := func(year int, month string, memory db.MemoryDetail) {
-		if _, exists := timeline[year]; !exists {
-			timeline[year] = make(map[string][]db.MemoryDetail)
+type TimelineGroups struct {
+	Years []YearGroup
+}
 
-		}
-		timeline[year][month] = append(timeline[year][month], memory)
-	}
+func BuildTimeline(memories []db.MemoryDetail) TimelineGroups {
+
+	timeline := TimelineGroups{}
 
 	for _, memory := range memories {
-		addMemory(
-			memory.Memory.MemoryDate.Year(),
-			memory.Memory.MemoryDate.Month().String(),
+		year := memory.Memory.MemoryDate.Year()
+		month := memory.Memory.MemoryDate.Month().String()
+
+		// If a new year appears
+		if len(timeline.Years) == 0 || timeline.Years[len(timeline.Years)-1].Year != year {
+			timeline.Years = append(timeline.Years, YearGroup{Year: year})
+		}
+
+		yearIndex := len(timeline.Years) - 1
+
+		// If a new month appears
+		if len(timeline.Years[yearIndex].Months) == 0 ||
+			timeline.Years[yearIndex].Months[len(timeline.Years[yearIndex].Months)-1].Month != month {
+
+			timeline.Years[yearIndex].Months = append(
+				timeline.Years[yearIndex].Months,
+				MonthGroup{Month: month},
+			)
+		}
+
+		monthIndex := len(timeline.Years[yearIndex].Months) - 1
+
+		timeline.Years[yearIndex].Months[monthIndex].Memories = append(
+			timeline.Years[yearIndex].Months[monthIndex].Memories,
 			memory,
 		)
+
 	}
+
 	return timeline
 
 }
@@ -59,15 +88,15 @@ func Timeline(journal db.Journal, memories []db.MemoryDetail) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		for year, months := range BuildTimeline(memories, db.DESC) {
+		for _, year := range BuildTimeline(memories).Years {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section><h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(year)
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(year.Year)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 36, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 65, Col: 18}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -77,15 +106,15 @@ func Timeline(journal db.Journal, memories []db.MemoryDetail) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for month, memoriesDetail := range months {
+			for _, month := range year.Months {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<hgroup><h3>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(month)
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(month.Month)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 38, Col: 23}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 67, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -95,7 +124,7 @@ func Timeline(journal db.Journal, memories []db.MemoryDetail) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				for _, memory := range memoriesDetail {
+				for _, memory := range month.Memories {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<li><small><strong>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -103,7 +132,7 @@ func Timeline(journal db.Journal, memories []db.MemoryDetail) templ.Component {
 					var templ_7745c5c3_Var4 string
 					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(memory.Memory.MemoryDate.Format("Jan 2"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 42, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 71, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 					if templ_7745c5c3_Err != nil {
@@ -116,7 +145,7 @@ func Timeline(journal db.Journal, memories []db.MemoryDetail) templ.Component {
 					var templ_7745c5c3_Var5 templ.SafeURL
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(route.MemoryURL(journal.ID, memory.Memory.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 44, Col: 62}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 73, Col: 62}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
@@ -129,7 +158,7 @@ func Timeline(journal db.Journal, memories []db.MemoryDetail) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(memory.Memory.Title)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 45, Col: 29}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/timeline.templ`, Line: 74, Col: 29}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {

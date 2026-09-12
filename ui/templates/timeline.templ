@@ -7,37 +7,66 @@ import (
 
 type TimelineMap map[int]map[string][]db.MemoryDetail
 
-func BuildTimeline(memories []db.MemoryDetail, ordering db.Ordering) TimelineMap {
+type MonthGroup struct {
+	Month    string
+	Memories []db.MemoryDetail
+}
 
-	timeline := make(map[int]map[string][]db.MemoryDetail)
+type YearGroup struct {
+	Year   int
+	Months []MonthGroup
+}
 
-	addMemory := func(year int, month string, memory db.MemoryDetail) {
-		if _, exists := timeline[year]; !exists {
-			timeline[year] = make(map[string][]db.MemoryDetail)
+type TimelineGroups struct {
+	Years []YearGroup
+}
 
-		}
-		timeline[year][month] = append(timeline[year][month], memory)
-	}
+func BuildTimeline(memories []db.MemoryDetail) TimelineGroups {
+
+	timeline := TimelineGroups{}
 
 	for _, memory := range memories {
-		addMemory(
-			memory.Memory.MemoryDate.Year(),
-			memory.Memory.MemoryDate.Month().String(),
+		year := memory.Memory.MemoryDate.Year()
+		month := memory.Memory.MemoryDate.Month().String()
+
+		// If a new year appears
+		if len(timeline.Years) == 0 || timeline.Years[len(timeline.Years)-1].Year != year {
+			timeline.Years = append(timeline.Years, YearGroup{Year: year})
+		}
+
+		yearIndex := len(timeline.Years) - 1
+
+		// If a new month appears
+		if len(timeline.Years[yearIndex].Months) == 0 ||
+			timeline.Years[yearIndex].Months[len(timeline.Years[yearIndex].Months)-1].Month != month {
+
+			timeline.Years[yearIndex].Months = append(
+				timeline.Years[yearIndex].Months,
+				MonthGroup{Month: month},
+			)
+		}
+
+		monthIndex := len(timeline.Years[yearIndex].Months) - 1
+
+		timeline.Years[yearIndex].Months[monthIndex].Memories = append(
+			timeline.Years[yearIndex].Months[monthIndex].Memories,
 			memory,
 		)
+
 	}
+
 	return timeline
 
 }
 
 templ Timeline(journal db.Journal, memories []db.MemoryDetail) {
-	for year, months := range BuildTimeline(memories, db.DESC) {
+	for _, year := range BuildTimeline(memories).Years {
 		<section>
-			<h2>{ year }</h2>
-			for month, memoriesDetail := range months {
-				<hgroup><h3>{ month }</h3></hgroup>
+			<h2>{ year.Year }</h2>
+			for _, month := range year.Months {
+				<hgroup><h3>{ month.Month }</h3></hgroup>
 				<ul>
-					for _, memory := range memoriesDetail {
+					for _, memory := range month.Memories {
 						<li>
 							<small><strong>{ memory.Memory.MemoryDate.Format("Jan 2") }</strong></small>
 							<span>— </span>
