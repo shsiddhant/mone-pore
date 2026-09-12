@@ -28,7 +28,7 @@ func JournalNavActions(journalID int64, activeURL string) NavActionsProps {
 	return NewNavActions(components...)
 }
 
-templ JournalIndex(journal db.Journal) {
+templ JournalIndex(journal db.Journal, memories []db.MemoryDetail) {
 	@Layout(
 		journal.JournalName,
 		journalIndexQuoteLines,
@@ -36,7 +36,7 @@ templ JournalIndex(journal db.Journal) {
 	) {
 		<main>
 			<h1>{ journal.JournalName }</h1>
-			<p>Journal unlocked successfully.</p>
+			@Timeline(journal, memories)
 			<p>
 				<a href={ route.HomeURL() }>Back to journals</a>
 			</p>

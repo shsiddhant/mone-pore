@@ -1,0 +1,53 @@
+package templates
+
+import (
+	"github.com/shsiddhant/mone-pore/internal/db"
+	"github.com/shsiddhant/mone-pore/internal/route"
+)
+
+type TimelineMap map[int]map[string][]db.MemoryDetail
+
+func BuildTimeline(memories []db.MemoryDetail, ordering db.Ordering) TimelineMap {
+
+	timeline := make(map[int]map[string][]db.MemoryDetail)
+
+	addMemory := func(year int, month string, memory db.MemoryDetail) {
+		if _, exists := timeline[year]; !exists {
+			timeline[year] = make(map[string][]db.MemoryDetail)
+
+		}
+		timeline[year][month] = append(timeline[year][month], memory)
+	}
+
+	for _, memory := range memories {
+		addMemory(
+			memory.Memory.MemoryDate.Year(),
+			memory.Memory.MemoryDate.Month().String(),
+			memory,
+		)
+	}
+	return timeline
+
+}
+
+templ Timeline(journal db.Journal, memories []db.MemoryDetail) {
+	for year, months := range BuildTimeline(memories, db.DESC) {
+		<section>
+			<h2>{ year }</h2>
+			for month, memoriesDetail := range months {
+				<hgroup><h3>{ month }</h3></hgroup>
+				<ul>
+					for _, memory := range memoriesDetail {
+						<li>
+							<small><strong>{ memory.Memory.MemoryDate.Format("Jan 2") }</strong></small>
+							<span>— </span>
+							<a href={ route.MemoryURL(journal.ID, memory.Memory.ID) }>
+								{ memory.Memory.Title }
+							</a>
+						</li>
+					}
+				</ul>
+			}
+		</section>
+	}
+}

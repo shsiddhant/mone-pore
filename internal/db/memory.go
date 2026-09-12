@@ -29,6 +29,14 @@ type MemoryDetail struct {
 	Tags   []Tag
 }
 
+type Ordering string
+
+const (
+	ASC  Ordering = "ASC"
+	DESC Ordering = "DESC"
+	NONE Ordering = "NONE"
+)
+
 // CreateTag creates a new tag with the given title.
 // It returns the newly created tag or an error if the operation fails.
 func (db *DB) CreateTag(
@@ -260,6 +268,56 @@ func (db *DB) GetMemoryDetail(
 	memoryDetail.Tags = tags
 
 	return memoryDetail, nil
+}
+
+func (db *DB) ListMemoryDetail(
+	ctx context.Context,
+	journalID int64,
+	dateOrdering Ordering,
+) ([]MemoryDetail, error) {
+
+	memoryIDs := []int64{}
+
+	queryString := `
+	SELECT id
+	FROM memory
+	WHERE journal_id = ?
+	`
+	switch dateOrdering {
+	case "ASC":
+		queryString += " ORDER BY memorydate ASC, created ASC"
+	case "DESC":
+		queryString += " ORDER BY memorydate DESC, created DESC"
+	}
+
+	rows, err := db.QueryContext(ctx, queryString, journalID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var memoryID int64
+		if err := rows.Scan(&memoryID); err != nil {
+			return nil, err
+		}
+		memoryIDs = append(memoryIDs, memoryID)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var memories []MemoryDetail
+
+	for _, memoryID := range memoryIDs {
+		memoryDetail, err := db.GetMemoryDetail(ctx, memoryID)
+		if err != nil {
+			return nil, err
+		}
+		memories = append(memories, memoryDetail)
+	}
+	return memories, err
 }
 
 // DeleteMemory deletes a memory from the database.

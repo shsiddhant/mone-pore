@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -148,7 +149,21 @@ func (app *Application) JournalIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := templates.JournalIndex(journal).Render(r.Context(), w); err != nil {
+	memories, err := app.DB.ListMemoryDetail(r.Context(), journalID, db.DESC)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.NotFound(w, r)
+			return
+		}
+		log.Println(err)
+
+		internalServerError(w)
+		return
+	}
+
+	if err := templates.JournalIndex(journal, memories).
+		Render(r.Context(), w); err != nil {
 		internalServerError(w)
 		return
 	}
