@@ -125,15 +125,19 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		"GET /journal/{id}/export_json",
 		unlockMiddleware.Apply(app.ExportJournalToJSON),
 	)
+	mux.HandleFunc("GET /admin/setup", app.SetupAdminPage)
+	mux.HandleFunc("POST /admin/setup", app.SetupAdmin)
 
 	// Global middlewares
 	withCSRF := middleware.CSRF(mux)
 	withSession := app.SessionManager.LoadAndSave(withCSRF)
+	withAdminSetup := middleware.AdminSetupRequired(
+		app.DB.AdminPasswordSetup)(withSession)
 
 	// Configure server
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      withSession,
+		Handler:      withAdminSetup,
 		ReadTimeout:  timeout,
 		WriteTimeout: timeout,
 		IdleTimeout:  timeout,

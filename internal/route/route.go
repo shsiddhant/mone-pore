@@ -8,6 +8,11 @@ func HomeURL() string {
 	return "/"
 }
 
+// SetupAdminURL returns the URL /admin/setup
+func SetupAdminURL() string {
+	return "/admin/setup"
+}
+
 // JournalURL returns the URL for a journal from its ID.
 func JournalURL(journalID int64) string {
 	return fmt.Sprintf("/journal/%d", journalID)

@@ -1,0 +1,59 @@
+package templates
+
+import "github.com/shsiddhant/mone-pore/internal/route"
+
+templ SetupAdminForm(errorMessage string) {
+	<form
+		action={ route.SetupAdminURL() }
+		id="setup-admin-form"
+		method="post"
+		style="max-width: 300px; margin-inline: auto;"
+	>
+		if errorMessage != "" {
+			<p
+				role="alert"
+				class="error-message"
+				style="color: var(--pico-form-element-invalid-border-color);font-weight: bold; margin-bottom: var(--pico-spacing);"
+			>
+				{ errorMessage }
+			</p>
+		}
+		<fieldset>
+			<label for="password">Password</label>
+			<input
+				type="password"
+				id="password"
+				name="password"
+				placeholder="Password"
+				autocomplete="new-password"
+				autofocus
+				required
+			/>
+		</fieldset>
+		<input
+			type="submit"
+			value="Create"
+		/>
+	</form>
+}
+
+templ SetupAdmin(errorMessage string) {
+	@Layout(
+		"Setup Admin",
+		homeQuoteLines,
+		NewNavActions(),
+	) {
+		<section class="setup-admin">
+			<article>
+				<header>
+					<h2>Set up admin access</h2>
+					<p>
+						Create an admin password for recovering forgotten journal passwords and
+						managing your journals in bulk, such as exporting all journals at once.
+					</p>
+				</header>
+				@SetupAdminForm(errorMessage)
+			</article>
+		</section>
+	}
+}

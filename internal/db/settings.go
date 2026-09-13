@@ -83,3 +83,29 @@ func (db *DB) UpdateSetting(
 
 	return err
 }
+
+// AdminPasswordSetup checks whether admim password has been set.
+func (db *DB) AdminPasswordSetup(
+	ctx context.Context,
+
+) (bool, error) {
+
+	queryString := `
+	SELECT
+		CASE
+			WHEN MAX(key) IS NOT NULL THEN 1
+			ELSE 0
+		END
+	FROM setting
+	WHERE key = ?
+	`
+
+	var exists int
+
+	err := db.QueryRowContext(ctx, queryString, SettingAdminPasswordHash).Scan(&exists)
+
+	if err != nil {
+		return false, err
+	}
+	return exists == 1, err
+}
