@@ -25,9 +25,7 @@ func UnlockedJournalRequired(
 				return
 			}
 
-			key := session.JournalUnlockedKey(journalID)
-
-			if !sessionManager.GetBool(r.Context(), key) {
+			if !session.IsJournalUnlocked(r.Context(), sessionManager, journalID) {
 				http.Redirect(w, r, route.HomeURL(), http.StatusSeeOther)
 				return
 			}
