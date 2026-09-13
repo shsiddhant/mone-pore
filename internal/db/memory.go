@@ -186,7 +186,7 @@ func (db *DB) CreateMemory(
 	}
 
 	// Add tags to the database
-	for _, title := range normalizeTags(tags) {
+	for _, title := range tags {
 		// getOrCreateTag
 		tag, err := getOrCreateTag(ctx, tx, title)
 
@@ -199,6 +199,7 @@ func (db *DB) CreateMemory(
 			`
 			INSERT INTO memory_tag (journal_id, memory_id, tag_id)
 			VALUES (?, ?, ?)
+			ON CONFLICT DO NOTHING
 			`,
 			memory.JournalID,
 			memory.ID,
@@ -270,54 +271,98 @@ func (db *DB) GetMemoryDetail(
 	return memoryDetail, nil
 }
 
+// ListMemoryDetail retrieves all memories in the database along with their
+// respective tags.
 func (db *DB) ListMemoryDetail(
 	ctx context.Context,
 	journalID int64,
 	dateOrdering Ordering,
 ) ([]MemoryDetail, error) {
 
-	memoryIDs := []int64{}
+	var memories []MemoryDetail
 
-	queryString := `
-	SELECT id
+	memoryQuery := `
+	SELECT id, journal_id, title, body, memorydate, created, modified
 	FROM memory
 	WHERE journal_id = ?
 	`
+
 	switch dateOrdering {
 	case "ASC":
-		queryString += " ORDER BY memorydate ASC, created ASC"
+		memoryQuery += " ORDER BY memorydate ASC, created ASC"
 	case "DESC":
-		queryString += " ORDER BY memorydate DESC, created DESC"
+		memoryQuery += " ORDER BY memorydate DESC, created DESC"
 	}
 
-	rows, err := db.QueryContext(ctx, queryString, journalID)
+	memRows, err := db.QueryContext(ctx, memoryQuery, journalID)
 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer memRows.Close()
 
-	for rows.Next() {
-		var memoryID int64
-		if err := rows.Scan(&memoryID); err != nil {
-			return nil, err
-		}
-		memoryIDs = append(memoryIDs, memoryID)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
+	memMap := make(map[int64]*MemoryDetail)
 
-	var memories []MemoryDetail
+	var orderedIDs []int64
 
-	for _, memoryID := range memoryIDs {
-		memoryDetail, err := db.GetMemoryDetail(ctx, memoryID)
+	for memRows.Next() {
+		var md MemoryDetail
+		err := memRows.Scan(
+			&md.Memory.ID,
+			&md.Memory.JournalID,
+			&md.Memory.Title,
+			&md.Memory.Body,
+			&md.Memory.MemoryDate,
+			&md.Memory.Created,
+			&md.Memory.Modified,
+		)
 		if err != nil {
 			return nil, err
 		}
-		memories = append(memories, memoryDetail)
+
+		md.Tags = []Tag{}
+
+		memories = append(memories, md)
+		orderedIDs = append(orderedIDs, md.Memory.ID)
+
+		memMap[md.Memory.ID] = &memories[len(memories)-1]
 	}
-	return memories, err
+	if err = memRows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(memories) == 0 {
+		return memories, nil
+	}
+
+	tagQuery := `
+	SELECT mt.memory_id, t.id, t.title
+	FROM tag t
+	JOIN memory_tag mt ON t.id = mt.tag_id
+	JOIN memory m ON m.id = mt.memory_id
+	WHERE m.journal_id = ?
+	`
+	tagRows, err := db.QueryContext(ctx, tagQuery, journalID)
+	if err != nil {
+		return nil, err
+	}
+	defer tagRows.Close()
+
+	for tagRows.Next() {
+		var memoryID int64
+		var tag Tag
+		if err := tagRows.Scan(&memoryID, &tag.ID, &tag.Title); err != nil {
+			return nil, err
+		}
+		if targetDetail, exists := memMap[memoryID]; exists {
+			targetDetail.Tags = append(targetDetail.Tags, tag)
+		}
+	}
+
+	if err = tagRows.Err(); err != nil {
+		return nil, err
+	}
+	return memories, nil
 }
 
 // DeleteMemory deletes a memory from the database.
@@ -392,29 +437,4 @@ func getOrCreateTag(
 	}
 
 	return tag, nil
-}
-
-// normalizeTags normalizes a slice of tag strings by removing blanks and duplicates.
-func normalizeTags(tags []string) []string {
-	// Create a set for seen tags
-	seen := make(map[string]struct{})
-
-	// Slice for normalized tags
-	normalized := make([]string, 0, len(tags))
-
-	for _, tag := range tags {
-		//If tag is empty, skip
-		if tag == "" {
-			continue
-		}
-		// If tag is seen, skip (to prevent duplication)
-		if _, ok := seen[tag]; ok {
-			continue
-		}
-
-		seen[tag] = struct{}{}
-		normalized = append(normalized, tag)
-	}
-
-	return normalized
 }

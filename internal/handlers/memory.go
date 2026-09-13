@@ -84,6 +84,7 @@ func (app *Application) NewMemory(w http.ResponseWriter, r *http.Request) {
 	tagsString := r.FormValue("tags")
 
 	tags := strings.Split(tagsString, ",")
+	tags = normalizeTags(tags)
 
 	if title == "" {
 		errorMessage = "Title cannot be blank"
@@ -150,4 +151,30 @@ func (app *Application) MemoryIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+// normalizeTags normalizes a slice of tag strings by removing blanks and duplicates.
+func normalizeTags(tags []string) []string {
+	// Create a set for seen tags
+	seen := make(map[string]struct{})
+
+	// Slice for normalized tags
+	normalized := make([]string, 0, len(tags))
+
+	for _, tag := range tags {
+		tag = strings.TrimSpace(tag)
+		//If tag is empty, skip
+		if tag == "" {
+			continue
+		}
+		// If tag is seen, skip (to prevent duplication)
+		if _, ok := seen[tag]; ok {
+			continue
+		}
+
+		seen[tag] = struct{}{}
+		normalized = append(normalized, tag)
+	}
+
+	return normalized
 }
