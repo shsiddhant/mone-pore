@@ -16,6 +16,10 @@ templ Layout(title string, quoteLines []string, navActionProps NavActionsProps) 
 				rel="stylesheet"
 				href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
 			/>
+			<!-- Link to Lucide Static icons -->
+			<link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css"/>
+			<!-- Global CSS styling component -->
+			@GlobalCSSStyle()
 			<!-- Link to HTMX -->
 			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous">
 			</script>
@@ -188,13 +192,27 @@ func GlobalNavActions(activeURL string) NavActionsProps {
 
 }
 
-templ JournalItem(journal db.JournalSummary) {
-	<a
-		href={ route.JournalURL(journal.ID) }
-		hx-get={ route.UnlockJournalURL(journal.ID) }
-		hx-target="#unlock-modal"
-		hx-swap="innerHTML"
-	>
-		{ journal.JournalName }
-	</a>
+templ JournalItem(journal db.JournalSummary, isUnlocked bool) {
+	if isUnlocked {
+		<!-- Direct link for unlocked journals -->
+		<a
+			class="journal-link"
+			href={ route.JournalURL(journal.ID) }
+		>
+			{ journal.JournalName }
+		</a>
+		<span class="sr-only">(Unlocked)</span>
+		<span class="icon-lock-open" aria-hidden="true"></span>
+	} else {
+		<!-- Htmx modal trigger for locked journals -->
+		<a
+			class="journal-link"
+			href="#"
+			hx-get={ route.UnlockJournalURL(journal.ID) }
+			hx-target="#unlock-modal"
+			hx-swap="innerHTML"
+		>
+			{ journal.JournalName }
+		</a>
+	}
 }

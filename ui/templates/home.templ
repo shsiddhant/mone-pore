@@ -7,7 +7,7 @@ var homeQuoteLines = []string{
 	`You can erase someone from your mind. Getting them out of your heart is another story.`,
 }
 
-templ Home(journals []db.JournalSummary) {
+templ Home(journals []db.JournalSummary, unlockedMap map[int64]bool) {
 	@Layout(
 		"Home",
 		homeQuoteLines,
@@ -17,7 +17,7 @@ templ Home(journals []db.JournalSummary) {
 		<ul>
 			for _, journal := range journals {
 				<li>
-					@JournalItem(journal)
+					@JournalItem(journal, unlockedMap[journal.ID])
 				</li>
 			}
 		</ul>
