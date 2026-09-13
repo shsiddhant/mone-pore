@@ -37,3 +37,7 @@ func NewMemoryURL(journalID int64) string {
 func MemoryURL(journalID int64, memoryID int64) string {
 	return fmt.Sprintf("/journal/%d/memory/%d", journalID, memoryID)
 }
+
+func JournalJSONExportURL(journalID int64) string {
+	return fmt.Sprintf("/journal/%d/export_json", journalID)
+}

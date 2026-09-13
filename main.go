@@ -121,6 +121,10 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		"GET /journal/{id}/memory/{memory_id}",
 		unlockMiddleware.Apply(app.MemoryIndex), // MemoryIndex: GET
 	)
+	mux.Handle(
+		"GET /journal/{id}/export_json",
+		unlockMiddleware.Apply(app.ExportJournalToJSON),
+	)
 
 	// Global middlewares
 	withCSRF := middleware.CSRF(mux)

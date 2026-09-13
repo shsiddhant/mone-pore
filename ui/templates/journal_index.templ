@@ -12,6 +12,7 @@ func JournalNavActions(journalID int64, activeURL string) NavActionsProps {
 	itemProps := []NavItemProps{
 		NavItemProps{Label: "Timeline", Href: route.JournalURL(journalID), Method: "GET"},
 		NavItemProps{Label: "New Memory", Href: route.NewMemoryURL(journalID), Method: "GET"},
+		NavItemProps{Label: "Export JSON", Href: route.JournalJSONExportURL(journalID), Method: "GET"},
 		NavItemProps{Label: "Lock", Href: route.LockJournalURL(journalID), Method: "POST"},
 	}
 
