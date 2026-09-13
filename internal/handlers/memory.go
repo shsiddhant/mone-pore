@@ -79,7 +79,8 @@ func (app *Application) NewMemory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := strings.TrimSpace(r.FormValue("title"))
-	body := r.FormValue("body")
+	// Normalize text area input
+	body := strings.ReplaceAll(r.FormValue("body"), "\r\n", "\n")
 	tagsString := r.FormValue("tags")
 
 	tags := strings.Split(tagsString, ",")
