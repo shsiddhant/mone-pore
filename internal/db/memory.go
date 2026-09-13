@@ -382,6 +382,100 @@ func (db *DB) DeleteMemory(
 	return err
 }
 
+// ListAllMemoryDetail retrieves all memories in the database along with their
+// respective tags.
+func (db *DB) ListAllMemoryDetail(
+	ctx context.Context,
+	dateOrdering Ordering,
+) ([]MemoryDetail, error) {
+	var memories []MemoryDetail
+
+	memoryQuery := `
+	SELECT id, journal_id, title, body, memorydate, created, modified
+	FROM memory
+	`
+
+	switch dateOrdering {
+	case "ASC":
+		memoryQuery += " ORDER BY memorydate ASC, created ASC"
+	case "DESC":
+		memoryQuery += " ORDER BY memorydate DESC, created DESC"
+	}
+
+	memRows, err := db.QueryContext(ctx, memoryQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer memRows.Close()
+
+	memMap := make(map[int64]*MemoryDetail)
+
+	for memRows.Next() {
+		var md MemoryDetail
+
+		if err := memRows.Scan(
+			&md.Memory.ID,
+			&md.Memory.JournalID,
+			&md.Memory.Title,
+			&md.Memory.Body,
+			&md.Memory.MemoryDate,
+			&md.Memory.Created,
+			&md.Memory.Modified,
+		); err != nil {
+			return nil, err
+		}
+
+		md.Tags = []Tag{}
+
+		memories = append(memories, md)
+		memMap[md.Memory.ID] = &memories[len(memories)-1]
+	}
+
+	if err := memRows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(memories) == 0 {
+		return memories, nil
+	}
+
+	tagQuery := `
+	SELECT mt.memory_id, t.id, t.title
+	FROM tag t
+	JOIN memory_tag mt ON t.id = mt.tag_id
+	JOIN memory m ON m.id = mt.memory_id
+	`
+
+	tagRows, err := db.QueryContext(ctx, tagQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer tagRows.Close()
+
+	for tagRows.Next() {
+		var memoryID int64
+		var tag Tag
+
+		if err := tagRows.Scan(
+			&memoryID,
+			&tag.ID,
+			&tag.Title,
+		); err != nil {
+			return nil, err
+		}
+
+		if targetDetail, exists := memMap[memoryID]; exists {
+			targetDetail.Tags = append(targetDetail.Tags, tag)
+		}
+	}
+
+	if err := tagRows.Err(); err != nil {
+		return nil, err
+	}
+
+	return memories, nil
+}
+
 // ------------------
 // Private Helpers //
 // -----------------

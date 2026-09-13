@@ -150,11 +150,13 @@ func (db *DB) DeleteJournal(
 type JournalSummary struct {
 	ID          int64
 	JournalName string
+	Created     time.Time
+	Modified    time.Time
 }
 
 func (db *DB) ListJournals(ctx context.Context) ([]JournalSummary, error) {
 	queryString := `
-	SELECT id, journalname
+	SELECT id, journalname, created, modified
 	FROM journal
 	ORDER BY journalname
 	`
@@ -173,6 +175,8 @@ func (db *DB) ListJournals(ctx context.Context) ([]JournalSummary, error) {
 		if err := rows.Scan(
 			&journalSummary.ID,
 			&journalSummary.JournalName,
+			&journalSummary.Created,
+			&journalSummary.Modified,
 		); err != nil {
 			return nil, err
 		}
