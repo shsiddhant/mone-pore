@@ -38,9 +38,18 @@ func NewMemoryURL(journalID int64) string {
 	return fmt.Sprintf("/journal/%d/memory/new", journalID)
 }
 
-// MemoryURL returns the URL for a memory `/journal/{id}/memory/{memory_id}`
+// MemoryURL returns the URL for a memory:
+//
+//	`/journal/{id}/memory/{memory_id}`
 func MemoryURL(journalID int64, memoryID int64) string {
 	return fmt.Sprintf("/journal/%d/memory/%d", journalID, memoryID)
+}
+
+// EditMemoryURL returns the URL for editing a memory:
+//
+//	`/journal/{id}/memory/{memory_id}/edit`
+func EditMemoryURL(journalID int64, memoryID int64) string {
+	return fmt.Sprintf("/journal/%d/memory/%d/edit", journalID, memoryID)
 }
 
 func JournalJSONExportURL(journalID int64) string {

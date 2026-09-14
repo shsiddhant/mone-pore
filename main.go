@@ -125,6 +125,15 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		"GET /journal/{id}/export_json",
 		unlockMiddleware.Apply(app.ExportJournalToJSON),
 	)
+	mux.Handle(
+		"GET /journal/{id}/memory/{memory_id}/edit",
+		unlockMiddleware.Apply(app.EditMemoryPage),
+	)
+	mux.Handle(
+		"POST /journal/{id}/memory/{memory_id}/edit",
+		unlockMiddleware.Apply(app.EditMemory),
+	)
+
 	mux.HandleFunc("GET /admin/setup", app.SetupAdminPage)
 	mux.HandleFunc("POST /admin/setup", app.SetupAdmin)
 

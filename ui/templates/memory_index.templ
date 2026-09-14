@@ -36,14 +36,28 @@ templ MemoryIndex(memory db.MemoryDetail) {
 	) {
 		<article>
 			<header>
-				<h2>{ memory.Memory.Title }</h2>
-				<small>
-					<strong>
-						<time datetime={ memory.Memory.MemoryDate.Format("2006-01-02") }>
-							{ memory.Memory.MemoryDate.Format("Mon, 02 Jan 2006") }
-						</time>
-					</strong>
-				</small>
+				<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+					<div>
+						<h2>{ memory.Memory.Title }</h2>
+						<small>
+							<strong>
+								<time datetime={ memory.Memory.MemoryDate.Format("2006-01-02") }>
+									{ memory.Memory.MemoryDate.Format("Mon, 02 Jan 2006") }
+								</time>
+							</strong>
+						</small>
+					</div>
+					<a
+						href={ route.EditMemoryURL(memory.Memory.JournalID, memory.Memory.ID) }
+						role="button"
+						class="secondary"
+						hx-boost="true"
+						style="display: inline-flex; align-items: center; gap: 0.5rem;"
+					>
+						<span class="icon-pencil" aria-hidden="true"></span>
+						Edit
+					</a>
+				</div>
 			</header>
 			<div class="memory-body markdown-content">
 				@markdown.ToHTML(memory.Memory.Body)

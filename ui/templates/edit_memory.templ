@@ -1,0 +1,105 @@
+package templates
+
+import (
+	"time"
+
+	"github.com/shsiddhant/mone-pore/internal/db"
+	"github.com/shsiddhant/mone-pore/internal/route"
+)
+
+func formatDate(t time.Time) string {
+	return t.Format("2006-01-02")
+}
+
+templ EditMemoryForm(journalID int64, currentMemory db.MemoryDetail, errorMessage string) {
+	<form
+		action={ route.EditMemoryURL(journalID, currentMemory.Memory.ID) }
+		id="edit-memory-form"
+		method="post"
+		autocomplete="off"
+	>
+		if errorMessage != "" {
+			<p
+				role="alert"
+				class="error-message"
+				style="color: var(--pico-form-element-invalid-border-color);font-weight: bold; margin-bottom: var(--pico-spacing);"
+			>
+				{ errorMessage }
+			</p>
+		}
+		<fieldset class="grid">
+			<div>
+				<label for="memorydate">Date</label>
+				<input
+					type="date"
+					id="memorydate"
+					name="memorydate"
+					value={ formatDate(currentMemory.Memory.MemoryDate) }
+					required
+				/>
+			</div>
+			<div style="flex: 2;">
+				<label for="title">Title</label>
+				<input
+					type="text"
+					id="title"
+					name="title"
+					placeholder="Enter a title."
+					value={ currentMemory.Memory.Title }
+					required
+				/>
+			</div>
+		</fieldset>
+		<fieldset>
+			<label for="body">Description</label>
+			<textarea
+				id="body"
+				name="body"
+				rows="15"
+				placeholder="Markdown is supported."
+			>
+				{ currentMemory.Memory.Body }
+			</textarea>
+		</fieldset>
+		<fieldset>
+			<label for="tags">Tags</label>
+			<input
+				type="text"
+				id="tags"
+				name="tags"
+				placeholder="Comma separated tags."
+				value={ joinTags(currentMemory.Tags) }
+			/>
+		</fieldset>
+		<fieldset style="display: flex; gap: 1rem; align-items: stretch;">
+			<a
+				href={ route.MemoryURL(currentMemory.Memory.JournalID, currentMemory.Memory.ID) }
+				role="button"
+				class="secondary"
+				style="margin-bottom: 0; display: inline-flex; align-items: center;"
+				hx-boost="true"
+			>
+				Cancel
+			</a>
+			<button type="submit" style="width: auto; margin-bottom: 0;">Save Changes</button>
+		</fieldset>
+	</form>
+}
+
+var editMemoryQuoteLines = []string{
+	`Bye Joel.`,
+	`I love you.`,
+	`Meet me... in Montauk...`,
+}
+
+templ EditMemory(journal db.Journal, currentMemory db.MemoryDetail, errorMessage string) {
+	@Layout(
+		"Edit Memory",
+		editMemoryQuoteLines,
+		JournalNavActions(journal.ID, route.EditMemoryURL(journal.ID, currentMemory.Memory.ID)),
+	) {
+		<h1>{ journal.JournalName }</h1>
+		<h2>Edit Memory</h2>
+		@EditMemoryForm(journal.ID, currentMemory, errorMessage)
+	}
+}
