@@ -146,7 +146,7 @@ func TestCreateMemory(t *testing.T) {
 	}
 
 	if !memory.MemoryDate.Equal(memoryDate) {
-		t.Errorf("got memory data %v, want %v", memory.MemoryDate, memoryDate)
+		t.Errorf("got memory date %v, want %v", memory.MemoryDate, memoryDate)
 	}
 
 	if memory.Title != title {
@@ -629,4 +629,112 @@ func TestGetTagsByMemoryID(t *testing.T) {
 	if !maps.Equal(gotSet, expectedSet) {
 		t.Errorf("got %s, want %s", gotSet, expectedSet)
 	}
+}
+
+func TestUpdateMemory(t *testing.T) {
+
+	ctx := context.Background()
+	database := testDB(t)
+
+	oldMemory := seedMemory(t, database)
+
+	newTitle := "The Best Day of My Life"
+	newBody := oldMemory.Body + "\n" + "We went to watch Wonka."
+	newTags := []string{"bestday", "moviedate", "firstdate"}
+
+	err := database.UpdateMemory(
+		ctx,
+		oldMemory.JournalID,
+		oldMemory.ID,
+		oldMemory.MemoryDate,
+		newTitle,
+		newBody,
+		newTags,
+	)
+	if err != nil {
+		t.Fatalf("UpdateMemory() error = %v", err)
+	}
+
+	newMemory, err := database.GetMemory(ctx, oldMemory.ID)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if newMemory.ID != oldMemory.ID {
+		t.Errorf("got memory ID %d, want %d", newMemory.ID, oldMemory.ID)
+	}
+	if newMemory.JournalID != oldMemory.JournalID {
+		t.Errorf("got memory ID %d, want %d", newMemory.JournalID, oldMemory.JournalID)
+	}
+	if !newMemory.MemoryDate.Equal(oldMemory.MemoryDate) {
+		t.Errorf(
+			"got memory date %v, want %v",
+			newMemory.MemoryDate,
+			oldMemory.MemoryDate,
+		)
+	}
+
+	if newMemory.Title != newTitle {
+		t.Errorf("got title %q, want %q", newMemory.Title, newTitle)
+	}
+
+	if newMemory.Body != newBody {
+		t.Errorf("got body %q, want %q", newMemory.Body, newBody)
+	}
+
+	for _, title := range newTags {
+		tag, err := database.GetTagByTitle(ctx, title)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var count int
+
+		err = database.QueryRowContext(
+			ctx,
+			`
+			SELECT COUNT(*)
+			FROM memory_tag
+			WHERE memory_id = ? AND tag_id = ?
+			`,
+			newMemory.ID,
+			tag.ID,
+		).Scan(&count)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if count != 1 {
+			t.Errorf(
+				"got %d relationships for tag %q, want 1",
+				count,
+				title,
+			)
+		}
+	}
+
+	var totalCount int
+	err = database.QueryRowContext(
+		ctx,
+		`
+    SELECT COUNT(*)
+    FROM memory_tag
+    WHERE memory_id = ?
+    `,
+		newMemory.ID,
+	).Scan(&totalCount)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if totalCount != len(newTags) {
+		t.Errorf(
+			"got %d total relationships, want %d",
+			totalCount,
+			len(newTags),
+		)
+	}
+
 }

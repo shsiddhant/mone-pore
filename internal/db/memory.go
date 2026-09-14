@@ -476,6 +476,85 @@ func (db *DB) ListAllMemoryDetail(
 	return memories, nil
 }
 
+// UpdateMemory updates a memory in the database.
+// It returns an error if the update fails.
+func (db *DB) UpdateMemory(
+	ctx context.Context,
+	journalID,
+	memoryID int64,
+	newMemoryDate time.Time,
+	newTitle string,
+	newBody string,
+	newTags []string,
+) error {
+	// Get a Tx for making transaction requests.
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	// Defer a rollback in case anything fails.
+	defer tx.Rollback()
+
+	queryString := `
+	UPDATE memory
+	SET
+		memorydate = ?,
+		title = ?,
+		body = ?,
+		modified = CURRENT_TIMESTAMP
+	WHERE id = ?
+	`
+
+	_, err = tx.ExecContext(
+		ctx,
+		queryString,
+		newMemoryDate,
+		newTitle,
+		newBody,
+		memoryID,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Delete tags from junction table 'memory_tag'
+	_, err = tx.ExecContext(
+		ctx,
+		`
+		DELETE FROM memory_tag
+		WHERE memory_id = ?
+		`,
+		memoryID)
+	if err != nil {
+		return err
+	}
+
+	for _, title := range newTags {
+		tag, err := getOrCreateTag(ctx, tx, title)
+		if err != nil {
+			return err
+		}
+
+		// Update junction table 'memory_tag'
+		_, err = tx.ExecContext(
+			ctx,
+			`
+			INSERT INTO memory_tag (journal_id, memory_id, tag_id)
+			VALUES (?, ?, ?)
+			ON CONFLICT DO NOTHING
+			`,
+			journalID,
+			memoryID,
+			tag.ID,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	// Commit the transaction.
+	return tx.Commit()
+}
+
 // ------------------
 // Private Helpers //
 // -----------------
