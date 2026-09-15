@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -136,6 +137,38 @@ func (app *Application) JournalIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	layout := "2006-01-02"
+
+	queryParams := r.URL.Query()
+	fromValue := queryParams.Get("from")
+	toValue := queryParams.Get("to")
+
+	var fromDate, toDate time.Time
+
+	if fromValue != "" {
+		fromDate, err = time.Parse(layout, fromValue)
+		if err != nil {
+			http.Error(
+				w,
+				"Invalid date format. Please use YYYY-MM-DD.",
+				http.StatusBadRequest,
+			)
+			return
+		}
+	}
+
+	if toValue != "" {
+		toDate, err = time.Parse(layout, toValue)
+		if err != nil {
+			http.Error(
+				w,
+				"Invalid date format. Please use YYYY-MM-DD.",
+				http.StatusBadRequest,
+			)
+			return
+		}
+	}
+
 	journal, err := app.DB.GetJournal(r.Context(), journalID)
 
 	if err != nil {
@@ -148,7 +181,13 @@ func (app *Application) JournalIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memories, err := app.DB.ListMemoryDetail(r.Context(), journalID, db.DESC)
+	memories, err := app.DB.ListMemoryDetail(
+		r.Context(),
+		journalID,
+		fromDate,
+		toDate,
+		db.DESC,
+	)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

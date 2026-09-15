@@ -29,6 +29,39 @@ func JournalNavActions(journalID int64, activeURL string) NavActionsProps {
 	return NewNavActions(components...)
 }
 
+templ FilterForm(journalID int64) {
+	<form
+		hx-get={ route.JournalURL(journalID) }
+		hx-target="#timeline"
+		hx-select="#timeline"
+		hx-push-url="true"
+		id="filter-form"
+	>
+		<fieldset class="grid">
+			<div>
+				<label for="from_date" style="font-weight: bold;">From</label>
+				<input type="date" id="from_date" name="from"/>
+			</div>
+			<div>
+				<label for="to_date" style="font-weight: bold;">To</label>
+				<input type="date" id="to_date" name="to"/>
+			</div>
+		</fieldset>
+		<fieldset style="display: flex; gap: 1rem; align-items: stretch;">
+			<button
+				type="reset"
+				hx-get={ route.JournalURL(journalID) }
+				hx-target="#timeline"
+				hx-select="#timeline"
+				hx-push-url="true"
+			>
+				Reset
+			</button>
+			<button type="submit" style="width: auto;">Filter</button>
+		</fieldset>
+	</form>
+}
+
 templ JournalIndex(journal db.Journal, memories []db.MemoryDetail) {
 	@Layout(
 		journal.JournalName,
@@ -37,7 +70,13 @@ templ JournalIndex(journal db.Journal, memories []db.MemoryDetail) {
 	) {
 		<main>
 			<h1>{ journal.JournalName }</h1>
-			@Timeline(journal, memories)
+			<details>
+				<summary role="button" class="outline secondary" style="width: auto;">Filter</summary>
+				@FilterForm(journal.ID)
+			</details>
+			<div id="timeline">
+				@Timeline(journal, memories)
+			</div>
 			<p>
 				<a href={ route.HomeURL() }>Back to journals</a>
 			</p>

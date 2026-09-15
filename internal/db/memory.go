@@ -276,6 +276,8 @@ func (db *DB) GetMemoryDetail(
 func (db *DB) ListMemoryDetail(
 	ctx context.Context,
 	journalID int64,
+	fromDate time.Time,
+	toDate time.Time,
 	dateOrdering Ordering,
 ) ([]MemoryDetail, error) {
 
@@ -287,6 +289,18 @@ func (db *DB) ListMemoryDetail(
 	WHERE journal_id = ?
 	`
 
+	queryParams := []any{journalID}
+
+	if !fromDate.IsZero() {
+		memoryQuery += " AND memorydate >= ?"
+		queryParams = append(queryParams, fromDate)
+	}
+
+	if !toDate.IsZero() {
+		memoryQuery += " AND memorydate <= ?"
+		queryParams = append(queryParams, toDate)
+	}
+
 	switch dateOrdering {
 	case "ASC":
 		memoryQuery += " ORDER BY memorydate ASC, created ASC"
@@ -294,7 +308,7 @@ func (db *DB) ListMemoryDetail(
 		memoryQuery += " ORDER BY memorydate DESC, created DESC"
 	}
 
-	memRows, err := db.QueryContext(ctx, memoryQuery, journalID)
+	memRows, err := db.QueryContext(ctx, memoryQuery, queryParams...)
 
 	if err != nil {
 		return nil, err

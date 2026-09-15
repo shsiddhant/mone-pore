@@ -55,7 +55,13 @@ func (app *Application) ExportJournalToJSON(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	dbMemories, err := app.DB.ListMemoryDetail(r.Context(), journalID, db.DESC)
+	dbMemories, err := app.DB.ListMemoryDetail(
+		r.Context(),
+		journalID,
+		time.Time{},
+		time.Time{},
+		db.DESC,
+	)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
