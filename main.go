@@ -1,7 +1,9 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +17,9 @@ import (
 	"github.com/shsiddhant/mone-pore/internal/handlers"
 	"github.com/shsiddhant/mone-pore/internal/middleware"
 )
+
+//go:embed ui/static
+var staticFS embed.FS
 
 func main() {
 
@@ -93,6 +98,14 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 
 	// Create router using ServerMux
 	mux := http.NewServeMux()
+
+	// Serve static files from embedded filesystem
+	staticSubFS, err := fs.Sub(staticFS, "ui/static")
+	if err != nil {
+		logger.Fatalf("Failed to create static sub-filesystem: %v", err)
+	}
+	fileServer := http.FileServer(http.FS(staticSubFS))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", fileServer))
 
 	// Routes
 	mux.HandleFunc("GET /{$}", app.Home)

@@ -18,8 +18,10 @@ templ Layout(title string, quoteLines []string, navActionProps NavActionsProps) 
 			/>
 			<!-- Link to Lucide Static icons -->
 			<link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css"/>
-			<!-- Global CSS styling component -->
-			@GlobalCSSStyle()
+			<!-- Global CSS styling -->
+			<link rel="stylesheet" href="/static/css/fonts.css"/>
+			<link rel="stylesheet" href="/static/css/theme.css"/>
+			<link rel="stylesheet" href="/static/css/style.css"/>
 			<!-- Link to HTMX -->
 			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous">
 			</script>
@@ -88,30 +90,6 @@ templ NavActions(props NavActionsProps) {
 }
 
 templ NavBar(navActionProps NavActionsProps) {
-	<style>
-		#nav-actions .nav-action:not(.active) {
-					color: var(--pico-muted-color);
-					background-color: transparent;
-					border-color: transparent;
-				}
-		#nav-actions .nav-action.active {
-			color: var(--pico-primary) !important;
-			font-weight: 600;
-		}
-		#nav-actions .nav-action:not(.active):hover {
-					color: var(--pico-primary);
-				}
-		.nav-links.open { display: flex !important; }
-		.menu-toggle { display: none; }
-		@media (max-width: 768px) {
-			.menu-toggle { display: block; }
-			.nav-links li { width: 100%; text-align: right; padding-bottom: 0; margin: 0;}
-			.nav-links { display: none !important; flex-direction: column; width: 100%; gap: 0.5rem; padding-top: 1rem; }
-			.nav-links.open { display: flex !important; }
-			nav { flex-wrap: wrap; }
-			nav ul:last-child { justify-content: flex-start; }
-		}
-	</style>
 	<header class="container">
 		<nav>
 			<ul>
