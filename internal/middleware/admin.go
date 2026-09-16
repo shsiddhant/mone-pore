@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/shsiddhant/mone-pore/internal/route"
 )
@@ -23,7 +24,13 @@ func AdminSetupRequired(
 				log.Fatalf("Fatal: Failed to verify admin setup status: %v", err)
 			}
 
-			// If admin is not setup then redirect every non admin setup url.
+			// Allow access to /static
+			if strings.HasPrefix(r.URL.Path, "/static/") {
+				handler.ServeHTTP(w, r)
+				return
+			}
+
+			// If admin is not setup then redirect every non admin setup url.z
 			if !adminSetup && route.SetupAdminURL() != r.URL.Path {
 				http.Redirect(w, r, route.SetupAdminURL(), http.StatusSeeOther)
 				return
