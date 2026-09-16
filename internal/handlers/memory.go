@@ -127,6 +127,12 @@ func (app *Application) NewMemory(w http.ResponseWriter, r *http.Request) {
 // Expected method: GET
 func (app *Application) MemoryIndex(w http.ResponseWriter, r *http.Request) {
 
+	journalID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
 	memoryID, err := strconv.ParseInt(r.PathValue("memory_id"), 10, 64)
 
 	if err != nil {
@@ -134,7 +140,7 @@ func (app *Application) MemoryIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memoryDetail, err := app.DB.GetMemoryDetail(r.Context(), memoryID)
+	memoryDetail, err := app.DB.GetMemoryDetail(r.Context(), journalID, memoryID)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -180,7 +186,7 @@ func (app *Application) EditMemoryPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentMemory, err := app.DB.GetMemoryDetail(r.Context(), memoryID)
+	currentMemory, err := app.DB.GetMemoryDetail(r.Context(), journalID, memoryID)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -281,7 +287,7 @@ func (app *Application) EditMemory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentMemory, err := app.DB.GetMemoryDetail(r.Context(), memoryID)
+	currentMemory, err := app.DB.GetMemoryDetail(r.Context(), journalID, memoryID)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -219,20 +219,23 @@ func (db *DB) CreateMemory(
 	return memory, nil
 }
 
-// GetMemory retrieves a memory by its ID.
+// GetMemory retrieves a memory by its ID and journalID.
 // It returns an error if the memory cannot be retrieved.
 func (db *DB) GetMemory(
 	ctx context.Context,
+	journalID int64,
 	memoryID int64,
 ) (Memory, error) {
 	var memory Memory
 
 	queryString := `
 	SELECT * FROM memory
-	WHERE id = ?
+	WHERE
+		id = ? AND
+		journal_id = ?
 	`
 
-	err := db.QueryRowContext(ctx, queryString, memoryID).Scan(
+	err := db.QueryRowContext(ctx, queryString, memoryID, journalID).Scan(
 		&memory.ID,
 		&memory.JournalID,
 		&memory.MemoryDate,
@@ -244,16 +247,17 @@ func (db *DB) GetMemory(
 	return memory, err
 }
 
-// GetMemoryDetail returns MemoryDetail from memory ID.
+// GetMemoryDetail returns MemoryDetail from memory ID and journalID.
 // It returns an error if the memory cannot be retrieved.
 func (db *DB) GetMemoryDetail(
 	ctx context.Context,
+	journalID int64,
 	memoryID int64,
 ) (MemoryDetail, error) {
 
 	var memoryDetail MemoryDetail
 
-	memory, err := db.GetMemory(ctx, memoryID)
+	memory, err := db.GetMemory(ctx, journalID, memoryID)
 
 	if err != nil {
 		return memoryDetail, err

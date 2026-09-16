@@ -456,7 +456,7 @@ func TestGetMemory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := database.GetMemory(ctx, expected.ID)
+	got, err := database.GetMemory(ctx, expected.JournalID, expected.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -494,7 +494,7 @@ func TestDeleteMemory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = database.GetMemory(ctx, memory.ID)
+	_, err = database.GetMemory(ctx, memory.JournalID, memory.ID)
 	if !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("got error %v, want sql.ErrNoRows", err)
 	}
@@ -527,7 +527,7 @@ func TestDeleteMemory(t *testing.T) {
 func TestGetMemoryNotFound(t *testing.T) {
 	database := testDB(t)
 
-	_, err := database.GetMemory(context.Background(), 123)
+	_, err := database.GetMemory(context.Background(), 1, 123)
 
 	if !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("got error %v, want sql.ErrNoRows", err)
@@ -569,7 +569,7 @@ func TestDeleteMemoryDoesNotDeleteOtherMemories(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := database.GetMemory(ctx, second.ID)
+	got, err := database.GetMemory(ctx, second.JournalID, second.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -655,7 +655,7 @@ func TestUpdateMemory(t *testing.T) {
 		t.Fatalf("UpdateMemory() error = %v", err)
 	}
 
-	newMemory, err := database.GetMemory(ctx, oldMemory.ID)
+	newMemory, err := database.GetMemory(ctx, oldMemory.JournalID, oldMemory.ID)
 
 	if err != nil {
 		t.Fatal(err)

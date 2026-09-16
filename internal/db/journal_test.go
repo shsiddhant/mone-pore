@@ -184,7 +184,7 @@ func TestDeleteJournal(t *testing.T) {
 	}
 
 	// Memory is gone
-	_, err = database.GetMemory(ctx, memory.ID)
+	_, err = database.GetMemory(ctx, journal.ID, memory.ID)
 	if !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("got error %v, want sql.ErrNoRows", err)
 	}
