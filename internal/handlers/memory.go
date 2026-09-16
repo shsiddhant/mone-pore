@@ -66,13 +66,10 @@ func (app *Application) NewMemory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errorMessage := ""
-
 	// Go timestamp parsing reference: 2006-01-02T15:04:05Z07:00
 	layout := "2006-01-02"
 
 	memoryDate, err := time.Parse(layout, r.FormValue("memorydate"))
-
 	if err != nil {
 		internalServerError(w)
 		return
@@ -87,7 +84,20 @@ func (app *Application) NewMemory(w http.ResponseWriter, r *http.Request) {
 	tags = normalizeTags(tags)
 
 	if title == "" {
-		errorMessage = "Title cannot be blank"
+		journal, err := app.DB.GetJournal(r.Context(), journalID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				http.NotFound(w, r)
+				return
+			}
+			internalServerError(w)
+			return
+		}
+		if err := templates.NewMemory(journal, "Title cannot be blank").
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+		}
+		return
 	}
 
 	_, err = app.DB.CreateMemory(r.Context(), journalID, memoryDate, title, body, tags)
@@ -96,27 +106,6 @@ func (app *Application) NewMemory(w http.ResponseWriter, r *http.Request) {
 		internalServerError(w)
 		return
 
-	}
-
-	journal, err := app.DB.GetJournal(r.Context(), journalID)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.NotFound(w, r)
-			return
-		}
-
-		internalServerError(w)
-		return
-	}
-
-	if errorMessage != "" {
-		if err := templates.NewMemory(journal, errorMessage).
-			Render(r.Context(), w); err != nil {
-			internalServerError(w)
-			return
-		}
-		return
 	}
 
 	http.Redirect(w, r, route.JournalURL(journalID), http.StatusSeeOther)
@@ -235,8 +224,6 @@ func (app *Application) EditMemory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errorMessage := ""
-
 	// Go timestamp parsing reference: 2006-01-02T15:04:05Z07:00
 	layout := "2006-01-02"
 
@@ -256,7 +243,30 @@ func (app *Application) EditMemory(w http.ResponseWriter, r *http.Request) {
 	tags = normalizeTags(tags)
 
 	if title == "" {
-		errorMessage = "Title cannot be blank"
+		journal, err := app.DB.GetJournal(r.Context(), journalID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				http.NotFound(w, r)
+				return
+			}
+			internalServerError(w)
+			return
+		}
+		currentMemory, err := app.DB.GetMemoryDetail(r.Context(), journalID, memoryID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				http.NotFound(w, r)
+				return
+			}
+
+			internalServerError(w)
+			return
+		}
+		if err := templates.EditMemory(journal, currentMemory, "Title cannot be blank").
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+		}
+		return
 	}
 
 	err = app.DB.UpdateMemory(
@@ -275,38 +285,6 @@ func (app *Application) EditMemory(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	journal, err := app.DB.GetJournal(r.Context(), journalID)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.NotFound(w, r)
-			return
-		}
-
-		internalServerError(w)
-		return
-	}
-
-	currentMemory, err := app.DB.GetMemoryDetail(r.Context(), journalID, memoryID)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.NotFound(w, r)
-			return
-		}
-
-		internalServerError(w)
-		return
-	}
-
-	if errorMessage != "" {
-		if err := templates.EditMemory(journal, currentMemory, errorMessage).
-			Render(r.Context(), w); err != nil {
-			internalServerError(w)
-			return
-		}
-		return
-	}
 	http.Redirect(w, r, route.MemoryURL(journalID, memoryID), http.StatusSeeOther)
 }
 
