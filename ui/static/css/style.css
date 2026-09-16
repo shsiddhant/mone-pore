@@ -1,3 +1,21 @@
+/* Buttons */
+button.destructive,
+input[type="submit"].destructive,
+input[type="button"].destructive,
+[role="button"].destructive {
+    --pico-background-color: var(--pico-destructive);
+    --pico-border-color: var(--pico-destructive);
+    --pico-color: var(--pico-primary-inverse, #ffffff);
+}
+
+button.destructive:hover,
+input[type="submit"].destructive:hover,
+input[type="button"].destructive:hover,
+[role="button"].destructive:hover {
+    --pico-background-color: var(--pico-destructive-hover);
+    --pico-border-color: var(--pico-destructive-hover);
+}
+
 /* Navigation Bar */
 #nav-actions .nav-action:not(.active) {
     color: var(--pico-muted-color);
@@ -91,4 +109,31 @@
 .journal-link:hover,
 .journal-link:focus {
     text-decoration: underline !important;
+}
+
+.memory-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.memory-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .memory-actions a[role="button"] {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+@media (min-width: 576px) {
+    .memory-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
 }

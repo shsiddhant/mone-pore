@@ -13,6 +13,9 @@
     --pico-primary-hover: #a80502;
     --pico-primary-hover-background: #a80502;
     --pico-primary-underline: #b40b0833;
+
+    --pico-destructive: #D9381E;
+    --pico-destructive-hover: #C02E16;
 }
 
 @media only screen and (prefers-color-scheme: dark) {
@@ -23,5 +26,8 @@
         --pico-primary-hover: #fdbeb8;
         --pico-primary-hover-background: #a80502;
         --pico-primary-underline: #fb9e9833;
+
+        --pico-destructive: #FF6B5A;
+        --pico-destructive-hover: #FFA499;
     }
 }

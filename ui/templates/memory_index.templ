@@ -36,7 +36,7 @@ templ MemoryIndex(memory db.MemoryDetail) {
 	) {
 		<article>
 			<header>
-				<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+				<div class="memory-header">
 					<div>
 						<h2>{ memory.Memory.Title }</h2>
 						<small>
@@ -47,16 +47,29 @@ templ MemoryIndex(memory db.MemoryDetail) {
 							</strong>
 						</small>
 					</div>
-					<a
-						href={ route.EditMemoryURL(memory.Memory.JournalID, memory.Memory.ID) }
-						role="button"
-						class="secondary"
-						hx-boost="true"
-						style="display: inline-flex; align-items: center; gap: 0.5rem;"
-					>
-						<span class="icon-pencil" aria-hidden="true"></span>
-						Edit
-					</a>
+					<div class="memory-actions">
+						<a
+							href={ route.EditMemoryURL(memory.Memory.JournalID, memory.Memory.ID) }
+							role="button"
+							class="secondary"
+							hx-boost="true"
+							style="display: inline-flex; align-items: center; gap: 0.5rem;"
+						>
+							<span class="icon-pencil" aria-hidden="true"></span>
+							Edit
+						</a>
+						<a
+							class="destructive"
+							href="#"
+							hx-get={ route.DeleteMemoryURL(memory.Memory.JournalID, memory.Memory.ID) }
+							hx-target="#delete-memory-modal"
+							role="button"
+							style="display: inline-flex; align-items: center; gap: 0.5rem;"
+						>
+							<span class="icon-trash" aria-hidden="true"></span>
+							Delete
+						</a>
+					</div>
 				</div>
 			</header>
 			<div class="memory-body markdown-content">
@@ -73,5 +86,6 @@ templ MemoryIndex(memory db.MemoryDetail) {
 				</footer>
 			}
 		</article>
+		<div id="delete-memory-modal"></div>
 	}
 }

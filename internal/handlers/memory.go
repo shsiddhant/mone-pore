@@ -335,3 +335,122 @@ func normalizeTags(tags []string) []string {
 
 	return normalized
 }
+
+// DeleteMemoryModal renders the modal for deleting a memory.
+//
+// Expected method: GET
+func (app *Application) DeleteMemoryModal(w http.ResponseWriter, r *http.Request) {
+	journalID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	memoryID, err := strconv.ParseInt(r.PathValue("memory_id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	dialogTitle := "Delete Memory"
+	dialogBodyText := "Are you sure you want to delete this memory? " +
+		"This deletion cannot be reverted.\n" +
+		"Please enter the journal password to confirm."
+	formID := "delete-memory-form"
+	hxPost := route.DeleteMemoryURL(journalID, memoryID)
+	hxTarget := "#delete-memory-modal"
+
+	if err := templates.DialogWithPassword(
+		dialogTitle,
+		dialogBodyText,
+		"Delete",
+		formID,
+		hxPost,
+		hxTarget,
+		"",
+	).Render(r.Context(), w); err != nil {
+		internalServerError(w)
+		return
+	}
+}
+
+// DeleteMemory verifies the journal password hash, deletes the memory, and
+// redirects to the journal index page.
+// If password hashes don't match, it renders the delete memory modal again,
+// with an error message.
+//
+// Expected method: POST
+func (app *Application) DeleteMemory(w http.ResponseWriter, r *http.Request) {
+	// Ensure the request is a POST method
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	journalID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	memoryID, err := strconv.ParseInt(r.PathValue("memory_id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	journal, err := app.DB.GetJournal(r.Context(), journalID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.NotFound(w, r)
+			return
+		}
+
+		internalServerError(w)
+		return
+	}
+
+	password := r.FormValue("password")
+
+	dialogTitle := "Delete Memory"
+	dialogBodyText := "Are you sure you want to delete this memory? " +
+		"This deletion cannot be reverted.\n" +
+		"Please enter the journal password to confirm."
+	formID := "delete-memory-form"
+	hxPost := route.DeleteMemoryURL(journalID, memoryID)
+	hxTarget := "#delete-memory-modal"
+
+	if !checkPasswordHash(password, journal.Password) {
+		if err := templates.DialogWithPassword(
+			dialogTitle,
+			dialogBodyText,
+			"Delete",
+			formID,
+			hxPost,
+			hxTarget,
+			"Incorrect password",
+		).Render(r.Context(), w); err != nil {
+			internalServerError(w)
+			return
+		}
+		// return to stop executing
+		return
+	}
+
+	// Delete the memory
+	if err = app.DB.DeleteMemory(r.Context(), memoryID); err != nil {
+		internalServerError(w)
+		return
+	}
+
+	// Redirect to the journal's index page.
+	// Use HX-Redirect so HTMX performs a full-page navigation.
+	// A normal HTTP redirect is followed by HTMX as part of the request,
+	// causing the redirected page to be swapped into hx-target instead.
+	w.Header().Set("HX-Redirect", route.JournalURL(journalID))
+	w.WriteHeader(http.StatusNoContent)
+}

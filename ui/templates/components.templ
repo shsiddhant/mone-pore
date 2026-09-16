@@ -194,3 +194,90 @@ templ JournalItem(journal db.JournalSummary, isUnlocked bool) {
 		</a>
 	}
 }
+
+templ Dialog(
+	targetID string,
+	title string,
+	bodyText string,
+	confirmName string,
+	actionURL string,
+) {
+	<dialog open>
+		<article>
+			<h2>{ title }</h2>
+			<p>{ bodyText }</p>
+			<footer>
+				<button
+					type="button"
+					class="secondary"
+					hx-on:click="this.closest('dialog').remove()"
+				>
+					Cancel
+				</button>
+				<a
+					hx-post={ actionURL }
+					hx-target={ targetID }
+					role="button"
+					class="destructive"
+					style="margin-bottom: 0; display: inline-flex; align-items: center;"
+					hx-boost="true"
+				>
+					{ confirmName }
+				</a>
+			</footer>
+		</article>
+	</dialog>
+}
+
+templ DialogWithPassword(
+	title string,
+	bodyText string,
+	confirmName string,
+	formID string,
+	hxPost string,
+	hxTarget string,
+	errorMessage string,
+) {
+	<dialog open>
+		<article>
+			<h2>{ title }</h2>
+			<p>{ bodyText }</p>
+			<form
+				id={ formID }
+				hx-post={ hxPost }
+				hx-target={ hxTarget }
+				hx-swap="innerHTML"
+			>
+				<label for="password">Password</label>
+				<input
+					type="password"
+					id="password"
+					name="password"
+					placeholder="Password"
+					autocomplete="current-password"
+					autofocus
+				/>
+				if errorMessage != "" {
+					<small role="alert">{ errorMessage }</small>
+				}
+			</form>
+			<footer>
+				<button
+					type="button"
+					class="secondary"
+					hx-on:click="this.closest('dialog').remove()"
+				>
+					Cancel
+				</button>
+				<button
+					type="submit"
+					class="destructive"
+					form={ formID }
+					style="width: auto;"
+				>
+					{ confirmName }
+				</button>
+			</footer>
+		</article>
+	</dialog>
+}

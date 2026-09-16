@@ -52,6 +52,16 @@ func EditMemoryURL(journalID int64, memoryID int64) string {
 	return fmt.Sprintf("/journal/%d/memory/%d/edit", journalID, memoryID)
 }
 
+// JournalJSONExportURL returns the URL for exporting a journal to JSON:
+//
+//	`journal/{id}/export_json`
 func JournalJSONExportURL(journalID int64) string {
 	return fmt.Sprintf("/journal/%d/export_json", journalID)
+}
+
+// DeleteMemoryURL returns the URL for deleting a memory:
+//
+//	`journal/{id}/memory/{memory_id}/delete`
+func DeleteMemoryURL(journalID int64, memoryID int64) string {
+	return fmt.Sprintf("/journal/%d/memory/%d/delete", journalID, memoryID)
 }
