@@ -1,0 +1,78 @@
+package templates
+
+import "github.com/shsiddhant/mone-pore/internal/db"
+import "github.com/shsiddhant/mone-pore/internal/route"
+
+var journalSettingsQuoteLines = []string{
+	`Okay`,
+	`Okay`,
+}
+
+templ UpdateJournalNameForm(journalID int64, journalName string) {
+	<form
+		action={ route.UpdateJournalNameURL(journalID) }
+		method="post"
+		id="update-journal-name-form"
+	>
+		<label for="new_name">
+			<strong>Journal name</strong>
+			<fieldset role="group">
+				<input
+					type="text"
+					id="new_name"
+					name="new_name"
+					value={ journalName }
+					required
+				/>
+				<button type="submit" class="secondary">Save</button>
+			</fieldset>
+		</label>
+	</form>
+}
+
+templ UpdateJournalPasswordForm(journalID int64) {
+	<article>
+		<header><strong>Update Password</strong></header>
+		<form
+			action={ route.UpdateJournalPasswordURL(journalID) }
+			id="update-journal-password-form"
+			method="post"
+		>
+			<label for="current_password">
+				Current Password
+				<input type="password" id="current_password" name="current_password" required/>
+			</label>
+			<label for="new_password">
+				New Password
+				<input type="password" id="new_password" name="new_password" required/>
+			</label>
+			<label for="confirm_new_password">
+				Confirm New Password
+				<input type="password" id="confirm_new_password" name="confirm_new_password" required/>
+			</label>
+			<button type="submit">Update Password</button>
+		</form>
+	</article>
+}
+
+templ JournalSettings(journal db.Journal, errorMessage string) {
+	@Layout(
+		"Settings",
+		journalSettingsQuoteLines,
+		JournalNavActions(journal.ID, route.JournalSettingsURL(journal.ID)),
+	) {
+		<h1>{ journal.JournalName }</h1>
+		<h2>Journal Settings</h2>
+		if errorMessage != "" {
+			<p
+				role="alert"
+				class="error-message"
+				style="color: var(--pico-form-element-invalid-border-color);font-weight: bold; margin-bottom: var(--pico-spacing);"
+			>
+				{ errorMessage }
+			</p>
+		}
+		@UpdateJournalNameForm(journal.ID, journal.JournalName)
+		@UpdateJournalPasswordForm(journal.ID)
+	}
+}

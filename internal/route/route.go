@@ -65,3 +65,15 @@ func JournalJSONExportURL(journalID int64) string {
 func DeleteMemoryURL(journalID int64, memoryID int64) string {
 	return fmt.Sprintf("/journal/%d/memory/%d/delete", journalID, memoryID)
 }
+
+func JournalSettingsURL(journalID int64) string {
+	return fmt.Sprintf("/journal/%d/settings", journalID)
+}
+
+func UpdateJournalNameURL(journalID int64) string {
+	return fmt.Sprintf("/journal/%d/settings/update_name", journalID)
+}
+
+func UpdateJournalPasswordURL(journalID int64) string {
+	return fmt.Sprintf("/journal/%d/settings/update_password", journalID)
+}

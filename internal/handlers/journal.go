@@ -311,6 +311,184 @@ func (app *Application) NewJournal(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// UpdateJournalName updates a journal's name.
+// If successful, it redirects to the journal's settings page.
+// In case of a user facing error, it shows the error on the page.
+//
+// Expected method: POST
+func (app *Application) UpdateJournalName(w http.ResponseWriter, r *http.Request) {
+	// Ensure the request is a POST method
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	journalID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	journal, err := app.DB.GetJournal(r.Context(), journalID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.NotFound(w, r)
+			return
+		}
+		internalServerError(w)
+		return
+	}
+
+	newName := r.FormValue("new_name")
+
+	if strings.TrimSpace(newName) == "" {
+		if err := templates.JournalSettings(journal, "Journal name cannot be blank").
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+			return
+		}
+		return
+	}
+
+	err = app.DB.UpdateJournalName(r.Context(), journal.ID, newName)
+
+	err = db.CheckError(err)
+
+	if errors.Is(err, db.ErrUniqueConstraint) {
+		errorMessage := fmt.Sprintf(
+			"Another journal with name '%s' already exists.",
+			newName,
+		)
+		if err := templates.JournalSettings(journal, errorMessage).
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+		}
+		return
+	}
+	if err != nil {
+		internalServerError(w)
+		return
+	}
+
+	http.Redirect(w, r, route.JournalSettingsURL(journal.ID), http.StatusSeeOther)
+
+}
+
+// UpdateJournalPassword updates a journal's password.
+// If successful, it redirects to the journal's settings page.
+// In case of a user facing error, it shows the error on the page.
+//
+// Expected method: POST
+func (app *Application) UpdateJournalPassword(w http.ResponseWriter, r *http.Request) {
+	// Ensure the request is a POST method
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	journalID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	journal, err := app.DB.GetJournal(r.Context(), journalID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.NotFound(w, r)
+			return
+		}
+
+		internalServerError(w)
+		return
+	}
+
+	currentPassword := r.FormValue("current_password")
+	newPassword := r.FormValue("new_password")
+	confirmNewPassword := r.FormValue("confirm_new_password")
+
+	if strings.TrimSpace(newPassword) == "" {
+		if err := templates.JournalSettings(journal, "Password cannot be blank").
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+		}
+		return
+	}
+
+	if newPassword != confirmNewPassword {
+		if err := templates.JournalSettings(journal, "Passwords don't match").
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+		}
+		return
+	}
+
+	if !checkPasswordHash(currentPassword, journal.Password) {
+		if err := templates.JournalSettings(journal, "Current password is wrong").
+			Render(r.Context(), w); err != nil {
+			internalServerError(w)
+		}
+		return
+	}
+
+	newPasswordHash, err := hashPassword(newPassword)
+	if err != nil {
+		internalServerError(w)
+		return
+	}
+
+	err = app.DB.UpdateJournalPassword(r.Context(), journal.ID, newPasswordHash)
+	err = db.CheckError(err)
+
+	if err != nil {
+		internalServerError(w)
+		return
+	}
+
+	http.Redirect(w, r, route.JournalSettingsURL(journal.ID), http.StatusSeeOther)
+
+}
+
+// JournalSettings renders the journal settings page.
+//
+// Expected method: GET
+func (app *Application) JournalSettings(w http.ResponseWriter, r *http.Request) {
+
+	journalID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	journal, err := app.DB.GetJournal(r.Context(), journalID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.NotFound(w, r)
+			return
+		}
+
+		internalServerError(w)
+		return
+	}
+
+	if err := templates.JournalSettings(journal, "").
+		Render(r.Context(), w); err != nil {
+		internalServerError(w)
+		return
+	}
+}
+
 // checkPasswordHash compares password and password hash.
 func checkPasswordHash(password string, passwordHash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))

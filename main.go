@@ -154,6 +154,18 @@ func run(appName string, port string, timeout time.Duration, logger *log.Logger)
 		"POST /journal/{id}/memory/{memory_id}/delete",
 		unlockMiddleware.Apply(app.DeleteMemory),
 	)
+	mux.Handle(
+		"GET /journal/{id}/settings",
+		unlockMiddleware.Apply(app.JournalSettings),
+	)
+	mux.Handle(
+		"POST /journal/{id}/settings/update_name",
+		unlockMiddleware.Apply(app.UpdateJournalName),
+	)
+	mux.Handle(
+		"POST /journal/{id}/settings/update_password",
+		unlockMiddleware.Apply(app.UpdateJournalPassword),
+	)
 
 	mux.HandleFunc("GET /admin/setup", app.SetupAdminPage)
 	mux.HandleFunc("POST /admin/setup", app.SetupAdmin)
