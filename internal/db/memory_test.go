@@ -738,3 +738,66 @@ func TestUpdateMemory(t *testing.T) {
 	}
 
 }
+
+func TestListMemoryDetail_RepeatedTags(t *testing.T) {
+	database := testDB(t)
+	ctx := context.Background()
+
+	journal := seedJournal(t, database)
+
+	first, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now(),
+		"First memory",
+		"First body",
+		[]string{"first", "common"},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	second, err := database.CreateMemory(
+		ctx,
+		journal.ID,
+		time.Now().Add(time.Second),
+		"Second memory",
+		"Second body",
+		[]string{"second", "common"},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, ordering := range []Ordering{"ASC", "DESC"} {
+		t.Run(string(ordering), func(t *testing.T) {
+			memories, err := database.ListMemoryDetail(
+				ctx,
+				journal.ID,
+				time.Time{},
+				time.Time{},
+				ordering,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(memories) != 2 {
+				t.Fatalf("got %d memories, want 2", len(memories))
+			}
+
+			byID := make(map[int64]MemoryDetail)
+			for _, memory := range memories {
+				byID[memory.Memory.ID] = memory
+			}
+
+			if got := len(byID[first.ID].Tags); got != 2 {
+				t.Errorf("first memory has %d tags, want 2", got)
+			}
+
+			if got := len(byID[second.ID].Tags); got != 2 {
+				t.Errorf("second memory has %d tags, want 2", got)
+			}
+		})
+	}
+}

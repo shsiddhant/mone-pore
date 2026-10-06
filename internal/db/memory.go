@@ -319,9 +319,7 @@ func (db *DB) ListMemoryDetail(
 	}
 	defer memRows.Close()
 
-	memMap := make(map[int64]*MemoryDetail)
-
-	var orderedIDs []int64
+	memMap := make(map[int64]int)
 
 	for memRows.Next() {
 		var md MemoryDetail
@@ -340,10 +338,8 @@ func (db *DB) ListMemoryDetail(
 
 		md.Tags = []Tag{}
 
+		memMap[md.Memory.ID] = len(memories)
 		memories = append(memories, md)
-		orderedIDs = append(orderedIDs, md.Memory.ID)
-
-		memMap[md.Memory.ID] = &memories[len(memories)-1]
 	}
 	if err = memRows.Err(); err != nil {
 		return nil, err
@@ -372,8 +368,8 @@ func (db *DB) ListMemoryDetail(
 		if err := tagRows.Scan(&memoryID, &tag.ID, &tag.Title); err != nil {
 			return nil, err
 		}
-		if targetDetail, exists := memMap[memoryID]; exists {
-			targetDetail.Tags = append(targetDetail.Tags, tag)
+		if index, exists := memMap[memoryID]; exists {
+			memories[index].Tags = append(memories[index].Tags, tag)
 		}
 	}
 
