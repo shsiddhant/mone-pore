@@ -34,3 +34,5 @@ go.work.sum
 
 # Git exports
 *.diff
+# Added by goreleaser init:
+dist/
