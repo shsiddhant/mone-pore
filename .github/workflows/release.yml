@@ -29,7 +29,7 @@ jobs:
         uses: ffurrer2/extract-release-notes@v3
         with:
           changelog_file: CHANGELOG.md
-          release_notes_file: ./tmp_release_notes.md
+          release_notes_file: ${{ runner.temp }}/tmp_release_notes.md
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
@@ -38,7 +38,7 @@ jobs:
           distribution: goreleaser
           # 'latest', 'nightly', or a semver
           version: "~> v2"
-          args: release --clean --release-notes=./tmp_release_notes.md
+          args: release --clean --release-notes=${{ runner.temp }}/tmp_release_notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
