@@ -1,0 +1,13 @@
+[Unit]
+Description=A personal memory journal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=%h/.local/bin/mone-pore
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+
