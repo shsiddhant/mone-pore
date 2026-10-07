@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.2] - 2026-10-07
+
+### Added
+
+- Add systemd unit file for running the application as a service.
+- Add GoReleaser configuration for automated releases.
+- Add CI workflow for creating GitHub releases.
+- Add installation task for Raspberry Pi.
+
+### Documentation
+
+- Add CHANGELOG and update README with installation and usage information.
+
 ## [1.0.1] - 2026-10-06
 
 ### Fixed
